@@ -1,29 +1,64 @@
-import React from "react";
+import React, { useRef, useLayoutEffect } from "react";
 import { ShieldCheck, Lock, FileText } from "lucide-react";
+import { gsap } from "gsap";
+import { ReactLenis } from '@studio-freight/react-lenis';
+
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/Footer";
 
-const LegalPage = ({ title, date, children }) => (
-  <div className="min-h-screen flex flex-col bg-slate-50 font-sans selection:bg-blue-100">
-    <Navbar />
-    <section className="pt-32 pb-20 lg:pt-48 lg:pb-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl p-8 md:p-16 shadow-xl shadow-slate-200/50 border border-slate-100">
-          <div className="border-b border-slate-100 pb-10 mb-10">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
-              {title}
-            </h1>
-            <p className="text-slate-500 font-medium">Last updated: {date}</p>
+// Shared Wrapper Component for all Legal Pages
+const LegalPage = ({ title, date, children }) => {
+  const containerRef = useRef(null);
+
+  useLayoutEffect(() => {
+    let ctx = gsap.context(() => {
+      // Fade and slide up the content box on load
+      gsap.fromTo(".legal-content",
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, ease: "power3.out" }
+      );
+    }, containerRef);
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <ReactLenis root options={{ lerp: 0.05, smoothWheel: true }}>
+      <div ref={containerRef} className="min-h-screen flex flex-col bg-[#0e100f] text-white font-sans selection:bg-[#3b82f6] selection:text-white">
+        <Navbar />
+        
+        {/* Ambient Background Glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#3b82f6]/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+
+        <section className="pt-32 pb-20 lg:pt-48 lg:pb-32 relative z-10">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="legal-content bg-[#1c1c1c] rounded-[2.5rem] p-8 md:p-16 shadow-2xl border-2 border-white/5 relative overflow-hidden">
+              
+              {/* Top abstract border line */}
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#3b82f6] via-[#0ae448] to-[#ff4a9e]"></div>
+
+              <div className="border-b border-white/10 pb-10 mb-10">
+                <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter uppercase">
+                  {title}
+                </h1>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">
+                  Last updated: {date}
+                </p>
+              </div>
+
+              {/* Neo-Brutalist Prose Styling */}
+              <div className="prose prose-invert prose-lg max-w-none hover:prose-a:text-[#3b82f6] prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight prose-headings:text-white text-slate-400 prose-p:font-medium prose-li:font-medium prose-a:transition-colors">
+                {children}
+              </div>
+              
+            </div>
           </div>
-          <div className="prose prose-slate prose-lg max-w-none hover:prose-a:text-blue-600 prose-headings:font-bold prose-headings:tracking-tight text-slate-600">
-            {children}
-          </div>
-        </div>
+        </section>
+        <Footer />
       </div>
-    </section>
-    <Footer />
-  </div>
-);
+    </ReactLenis>
+  );
+};
 
 // --- EXPORTS ---
 
@@ -262,23 +297,25 @@ export const CancellationRefund = () => (
 );
 
 export const ShippingPolicy = () => {
-  <LegalPage title="Shipping & Delivery Policy" date="Dec 7, 2025">
-    <p>
-      For International buyers, orders are shipped and delivered through
-      registered international courier companies and/or International speed post
-      only. For domestic buyers, orders are shipped through registered domestic
-      courier companies and /or speed post only. Orders are shipped within 0-7
-      days or as per the delivery date agreed at the time of order confirmation
-      and delivering of the shipment subject to Courier Company / post office
-      norms. Utkasrh Suryakant Palav is not liable for any delay in delivery by
-      the courier company / postal authorities and only guarantees to hand over
-      the consignment to the courier company or postal authorities within 0-7
-      days rom the date of the order and payment or as per the delivery date
-      agreed at the time of order confirmation. Delivery of all orders will be
-      to the address provided by the buyer. Delivery of our services will be
-      confirmed on your mail ID as specified during registration. For any issues
-      in utilizing our services you may contact our helpdesk on 7208451005 or
-      utkarshpalav17@gmail.com
-    </p>
-  </LegalPage>;
+  return (
+    <LegalPage title="Shipping & Delivery Policy" date="Dec 7, 2025">
+      <p>
+        For International buyers, orders are shipped and delivered through
+        registered international courier companies and/or International speed post
+        only. For domestic buyers, orders are shipped through registered domestic
+        courier companies and /or speed post only. Orders are shipped within 0-7
+        days or as per the delivery date agreed at the time of order confirmation
+        and delivering of the shipment subject to Courier Company / post office
+        norms. Utkasrh Suryakant Palav is not liable for any delay in delivery by
+        the courier company / postal authorities and only guarantees to hand over
+        the consignment to the courier company or postal authorities within 0-7
+        days rom the date of the order and payment or as per the delivery date
+        agreed at the time of order confirmation. Delivery of all orders will be
+        to the address provided by the buyer. Delivery of our services will be
+        confirmed on your mail ID as specified during registration. For any issues
+        in utilizing our services you may contact our helpdesk on 7208451005 or
+        utkarshpalav17@gmail.com
+      </p>
+    </LegalPage>
+  );
 };
