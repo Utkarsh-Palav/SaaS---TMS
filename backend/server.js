@@ -37,7 +37,7 @@ app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 // Socket.IO server setup
 const io = new SocketServer(server, {
   cors: {
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
     credentials: true,
   },

@@ -190,4 +190,7 @@
   .hover\:rotate-x-0:hover {
     transform: rotateX(0deg) scale(1);
   }
+  .bg-radial-gradient {
+    background: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+  }
 }
