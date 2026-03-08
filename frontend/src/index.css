@@ -154,27 +154,34 @@
   display: none;
 }
 
+/* --- SLEEK DARK MODE SCROLLBAR --- */
 /* Width & Height */
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
-/* Track */
+/* Track (Matches your dark background) */
 *::-webkit-scrollbar-track {
-  background: #eff6ff; /* Blue-50: Very light blue background */
+  background: #0e100f; 
 }
 
-/* Thumb */
+/* Thumb (Subtle dark gray, matches your Bento cards) */
 *::-webkit-scrollbar-thumb {
-  background-color: #bfdbfe; /* Blue-200: Soft blue */
+  background-color: #1c1c1c; 
   border-radius: 10px;
-  border: 2px solid #eff6ff; /* Adds a nice padding effect */
+  border: 2px solid #0e100f; /* Creates a padding effect against the track */
 }
 
-/* Hover State */
+/* Hover State (Pops with your new Electric Blue!) */
 *::-webkit-scrollbar-thumb:hover {
-  background-color: #3b82f6; /* Blue-500: Your primary brand color */
+  background-color: #3b82f6; 
+}
+
+/* Ensure the browser knows this is a dark page to prevent white flashes on load */
+html, body {
+  color-scheme: dark;
+  background-color: #0e100f;
 }
 
 @layer utilities {

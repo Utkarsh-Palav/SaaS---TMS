@@ -4,37 +4,37 @@ import { Layers, Github, Twitter, Linkedin } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-slate-950 text-slate-300 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+    <footer className="bg-[#0e100f] text-slate-300 border-t border-white/10">
+      <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           
           {/* Brand Column */}
           <div className="col-span-1 md:col-span-1">
-             <Link to="/" className="flex items-center gap-2 mb-4">
-                <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Layers className="text-white w-5 h-5" />
+             <Link to="/" className="flex items-center gap-2 mb-6 group">
+                <div className="h-8 w-8 bg-[#3B82F6] rounded flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
+                  <Layers className="text-black w-5 h-5" strokeWidth={2.5} />
                 </div>
-                <span className="text-xl font-bold text-white tracking-tight">
-                  Task<span className="text-blue-500">ify</span>
+                <span className="text-2xl font-black text-white tracking-tighter">
+                  Task<span className="text-[#3B82F6]">ify</span>
                 </span>
               </Link>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              The operating system for modern organizations. Manage less, do more.
+            <p className="text-slate-400 text-base font-medium leading-relaxed">
+              The operating system for modern organizations. Build, track, and execute effortlessly.
             </p>
-            <div className="mt-6 flex space-x-4">
-              <SocialIcon icon={<Twitter size={20} />} href="https://twitter.com" />
-              <SocialIcon icon={<Github size={20} />} href="https://github.com" />
-              <SocialIcon icon={<Linkedin size={20} />} href="https://linkedin.com" />
+            <div className="mt-8 flex space-x-5">
+              <SocialIcon icon={<Twitter size={22} />} href="https://twitter.com" />
+              <SocialIcon icon={<Github size={22} />} href="https://github.com" />
+              <SocialIcon icon={<Linkedin size={22} />} href="https://linkedin.com" />
             </div>
           </div>
 
-          {/* Links Columns - PASS DATA AS OBJECTS */}
+          {/* Links Columns */}
           <FooterColumn 
             title="Product" 
             items={[
-              { name: "Features", to: "/integrations" }, // Use anchors for sections
+              { name: "Features", to: "/integrations" },
               { name: "Integrations", to: "/integrations" },
-              { name: "Pricing", to: "/plans" }, // Correct internal link
+              { name: "Pricing", to: "/plans" },
               { name: "Changelog", to: "/changelog" }
             ]} 
           />
@@ -58,13 +58,13 @@ const Footer = () => {
           />
         </div>
 
-        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-slate-500">
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm font-medium text-slate-500">
             &copy; {new Date().getFullYear()} Taskify Inc. All rights reserved.
           </p>
-          <div className="flex gap-6 text-sm text-slate-500">
-            <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <div className="flex gap-8 text-sm font-bold text-slate-500 uppercase tracking-wider">
+            <Link to="/privacy" className="hover:text-[#0ae448] transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-[#0ae448] transition-colors">Terms</Link>
           </div>
         </div>
       </div>
@@ -72,19 +72,17 @@ const Footer = () => {
   );
 };
 
-// ✅ UPDATED COMPONENT: Accepts 'items' array of objects
 const FooterColumn = ({ title, items }) => (
   <div>
-    <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
+    <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6">
       {title}
     </h3>
-    <ul className="space-y-3">
+    <ul className="space-y-4">
       {items.map((item) => (
         <li key={item.name}>
-          {/* Use Link for internal navigation to prevent page reload */}
           <Link 
             to={item.to} 
-            className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
+            className="text-base font-medium text-slate-400 hover:text-[#0ae448] transition-colors"
           >
             {item.name}
           </Link>
@@ -94,13 +92,12 @@ const FooterColumn = ({ title, items }) => (
   </div>
 );
 
-// Helper for external social links (Use <a> here because they go outside your site)
 const SocialIcon = ({ icon, href }) => (
   <a 
     href={href} 
     target="_blank" 
     rel="noopener noreferrer"
-    className="text-slate-400 hover:text-white hover:scale-110 transition-all"
+    className="text-slate-400 hover:text-[#0ae448] hover:scale-110 transition-all"
   >
     {icon}
   </a>
