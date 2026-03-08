@@ -1,8 +1,9 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState, useRef, useLayoutEffect } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-hot-toast";
+import { gsap } from "gsap";
 import {
   CheckIcon,
   Crown,
@@ -13,18 +14,12 @@ import {
   MapPin,
   UploadCloudIcon,
   UserIcon,
-  XIcon,
   ArrowRight,
-  Command,
-  Rocket,
-  Hexagon,
   Layers,
   Loader,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import Prism from "@/components/Prism";
-import LightRays from "@/components/LightRays";
 import FloatingLines from "@/components/FloatingLines";
 
 const Registration = () => {
@@ -63,6 +58,7 @@ const Registration = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const id = useId();
+  const containerRef = useRef(null);
 
   const toggleVisibility = () => setIsVisible((prev) => !prev);
 
@@ -86,11 +82,11 @@ const Registration = () => {
   }, [strength]);
 
   const getStrengthColor = (score) => {
-    if (score === 0) return "bg-border";
-    if (score <= 1) return "bg-red-500";
-    if (score <= 2) return "bg-orange-500";
-    if (score === 3) return "bg-amber-500";
-    return "bg-emerald-500";
+    if (score === 0) return "bg-white/10";
+    if (score <= 1) return "bg-[#ff4a9e]"; // Neon Pink
+    if (score <= 2) return "bg-[#ff8a00]"; // Orange
+    if (score === 3) return "bg-[#ffcc00]"; // Neon Yellow
+    return "bg-[#0ae448]"; // Neon Green
   };
 
   // ✅ Check if all required fields are filled (Excluding websiteUrl)
@@ -174,15 +170,13 @@ const Registration = () => {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        // We fetch only the fields we need: Name, Flags, and IDD (Phone Code)
         const response = await axios.get(
           "https://restcountries.com/v3.1/all?fields=name,flags,idd,cca2"
         );
 
         const countryData = response.data
-          .filter((country) => country.idd.root) // Filter out countries with no phone code
+          .filter((country) => country.idd.root)
           .map((country) => {
-            // Logic to handle codes like +1 (USA) vs +1242 (Bahamas)
             const root = country.idd.root;
             const suffix =
               country.idd.suffixes && country.idd.suffixes.length === 1
@@ -192,16 +186,15 @@ const Registration = () => {
             return {
               name: country.name.common,
               code: root + suffix,
-              flag: country.flags.svg, // We can use SVG in custom UI, or emoji for native select
-              emoji: country.flags.alt ? country.flag : "🏳️", // Fallback for flag emoji
-              cca2: country.cca2, // Two letter code (e.g. IN, US)
+              flag: country.flags.svg,
+              emoji: country.flags.alt ? country.flag : "🏳️",
+              cca2: country.cca2,
             };
           })
-          .sort((a, b) => a.name.localeCompare(b.name)); // Sort Alphabetically
+          .sort((a, b) => a.name.localeCompare(b.name));
 
         setCountries(countryData);
 
-        // Auto-select India (+91) if available, otherwise default to first
         const defaultCountry = countryData.find((c) => c.cca2 === "IN");
         if (defaultCountry) setCountryCode(defaultCountry.code);
 
@@ -215,17 +208,35 @@ const Registration = () => {
     fetchCountries();
   }, []);
 
+  // Entrance Animations
+  useLayoutEffect(() => {
+    let ctx = gsap.context(() => {
+      gsap.fromTo(".reg-left",
+        { x: -50, opacity: 0 },
+        { x: 0, opacity: 1, duration: 1, ease: "power3.out" }
+      );
+      gsap.fromTo(".reg-right",
+        { x: 50, opacity: 0 },
+        { x: 0, opacity: 1, duration: 1, ease: "power3.out", delay: 0.2 }
+      );
+    }, containerRef);
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="min-h-screen w-full bg-slate-50 flex">
+    <div ref={containerRef} className="min-h-screen w-full bg-[#0e100f] text-white flex font-sans selection:bg-[#3b82f6] selection:text-white">
+      
       {/* Left Panel - The "Empowering" Vision (Visible on LG screens) */}
-      <div className="hidden lg:flex lg:w-5/12 bg-slate-900 text-white flex-col justify-between p-12 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-85 pointer-events-none">
+      <div className="reg-left hidden lg:flex lg:w-5/12 bg-[#1c1c1c] border-r border-white/5 flex-col justify-between p-12 relative overflow-hidden">
+        
+        {/* Ambient Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#3b82f6]/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none mix-blend-screen">
           <div style={{ width: "100%", height: "100%", position: "relative" }}>
             <FloatingLines
               enabledWaves={["top", "middle", "bottom"]}
-              // Array - specify line count per wave; Number - same count for all waves
               lineCount={[10, 15, 20]}
-              // Array - specify line distance per wave; Number - same distance for all waves
               lineDistance={[8, 6, 4]}
               bendRadius={5.0}
               bendStrength={-0.5}
@@ -236,26 +247,25 @@ const Registration = () => {
         </div>
 
         <div className="z-10">
-          <div className="flex items-center gap-3 mb-12">
-            <div className="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-              <Layers className="text-white w-6 h-6 fill-white" />
+          <div className="flex items-center gap-3 mb-16">
+            <div className="h-12 w-12 bg-[#3b82f6] rounded-xl flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+              <Layers className="text-black w-7 h-7 fill-black" strokeWidth={2} />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">
-              Task<span className="text-blue-500">ify</span>
+            <span className="text-3xl font-black tracking-tighter text-white">
+              Task<span className="text-[#3b82f6]">ify</span>
             </span>
           </div>
-          <h2 className="text-4xl font-bold leading-tight mb-4">
-            Captain your ship.
+          <h2 className="text-5xl lg:text-6xl font-black leading-[0.9] tracking-tighter uppercase mb-6">
+            Captain <br/><span className="text-[#3b82f6]">Your Ship.</span>
           </h2>
-          <p className="text-slate-400 text-lg">
-            Establish your organization's digital HQ. Manage teams, track
-            workflows, and lead with clarity.
+          <p className="text-slate-400 text-lg font-medium leading-relaxed max-w-md">
+            Establish your organization's digital HQ. Manage teams, track workflows, and lead with clarity.
           </p>
         </div>
 
         <div className="z-10">
           <div className="flex items-center gap-4 mb-4">
-            <div className="flex -space-x-3">
+            <div className="flex -space-x-4">
               {[
                 "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&h=64",
                 "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=64&h=64",
@@ -266,44 +276,51 @@ const Registration = () => {
                   key={i}
                   src={src}
                   alt={`User ${i + 1}`}
-                  className="w-10 h-10 rounded-full border-2 border-slate-900 object-cover"
+                  className="w-12 h-12 rounded-full border-2 border-[#1c1c1c] object-cover grayscale hover:grayscale-0 transition-all duration-300"
                 />
               ))}
             </div>
-            <p className="text-sm font-medium">Joined by 10,000+ Leaders</p>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Joined by 10,000+ Leaders</p>
           </div>
         </div>
       </div>
 
       {/* Right Panel - The "Professional" Form */}
-      <div className="w-full lg:w-7/12 h-screen overflow-y-auto scrollbar-hide flex justify-center">
-        <div className="max-w-3xl mx-auto py-12 px-6 lg:px-12">
+      <div className="reg-right w-full lg:w-7/12 h-screen overflow-y-auto scrollbar-hide flex justify-center relative">
+        <div className="max-w-3xl w-full mx-auto py-12 px-6 lg:px-12 relative z-10">
+          
           {/* Mobile Header */}
-          <div className="lg:hidden text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-900">
+          <div className="lg:hidden text-center mb-10">
+            <div className="flex justify-center items-center gap-3 mb-6">
+              <div className="h-10 w-10 bg-[#3b82f6] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                <Layers className="text-black w-6 h-6 fill-black" />
+              </div>
+              <span className="text-2xl font-black tracking-tighter text-white">Taskify</span>
+            </div>
+            <h1 className="text-4xl font-black uppercase tracking-tighter text-white">
               Create Account
             </h1>
-            <p className="text-slate-500 mt-2">
+            <p className="text-slate-400 mt-2 font-medium">
               Set up your organization in minutes.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-10">
+          <form onSubmit={handleSubmit} className="space-y-12">
+            
             {/* Section 1: Identity */}
             <section>
-              <div className="flex items-center gap-2 mb-6 border-b pb-2">
-                <Briefcase className="w-5 h-5 text-yellow-500" />
-                <h2 className="text-lg font-semibold text-slate-800">
+              <div className="flex items-center gap-3 mb-8 border-b border-white/10 pb-4">
+                <Briefcase className="w-6 h-6 text-[#3b82f6]" />
+                <h2 className="text-xl font-black uppercase tracking-widest text-white">
                   Leader Profile
                 </h2>
               </div>
 
               {/* Profile Pic Center Stage */}
               <div className="flex flex-col items-center mb-10">
-                {/* CHANGE 1: Changed 'div' to 'label' here */}
                 <label className="relative group cursor-pointer">
                   {/* The Circle */}
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white ring-4 ring-slate-50 shadow-xl bg-slate-50 flex items-center justify-center group-hover:ring-yellow-400 transition-all duration-300">
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-white/10 bg-[#1c1c1c] flex items-center justify-center group-hover:border-[#3b82f6] transition-all duration-300 shadow-xl">
                     {imagePreview ? (
                       <img
                         src={imagePreview}
@@ -311,80 +328,72 @@ const Registration = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <UserIcon className="w-12 h-12 text-slate-300 group-hover:text-slate-400 transition-colors" />
+                      <UserIcon className="w-12 h-12 text-slate-500 group-hover:text-[#3b82f6] transition-colors" />
                     )}
                   </div>
 
                   {/* The Hover Overlay */}
-                  <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 rounded-full transition-all duration-300 flex items-center justify-center">
-                    <div className="bg-slate-900 text-white p-2 rounded-full shadow-lg transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                      <UploadCloudIcon size={18} />
+                  <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm">
+                    <div className="text-white transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                      <UploadCloudIcon size={24} />
                     </div>
                   </div>
 
-                  {/* The Input remains hidden inside the label */}
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageChange}
                   />
-                </label>{" "}
-                {/* CHANGE 2: Closed with 'label' */}
-                <p className="text-sm font-medium text-slate-400 mt-4 group-hover:text-yellow-600 transition-colors">
-                  Click to upload avatar
+                </label>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mt-4 group-hover:text-[#3b82f6] transition-colors">
+                  Upload Avatar
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    First Name <span className="text-red-500">*</span>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    First Name <span className="text-[#ff4a9e]">*</span>
                   </label>
-                  <div className="flex items-center justify-center gap-2">
-                    <Input
-                      name="firstName"
-                      placeholder="John"
-                      value={formFields.firstName}
-                      onChange={handleChange}
-                      className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
-                      required
-                    />
-                  </div>
+                  <Input
+                    name="firstName"
+                    placeholder="John"
+                    value={formFields.firstName}
+                    onChange={handleChange}
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Middle Name <span className="text-red-500">*</span>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Middle Name <span className="text-[#ff4a9e]">*</span>
                   </label>
-                  <div className="flex items-center justify-center gap-2">
-                    <Input
-                      name="middleName"
-                      placeholder="William"
-                      value={formFields.middleName}
-                      onChange={handleChange}
-                      className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
-                      required
-                    />
-                  </div>
+                  <Input
+                    name="middleName"
+                    placeholder="William"
+                    value={formFields.middleName}
+                    onChange={handleChange}
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Last Name <span className="text-red-500">*</span>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Last Name <span className="text-[#ff4a9e]">*</span>
                   </label>
-                  <div className="flex items-center justify-center gap-2">
-                    <Input
-                      name="lastName"
-                      placeholder="Doe"
-                      value={formFields.lastName}
-                      onChange={handleChange}
-                      className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
-                      required
-                    />
-                  </div>
+                  <Input
+                    name="lastName"
+                    placeholder="Doe"
+                    value={formFields.lastName}
+                    onChange={handleChange}
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
+                    required
+                  />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Email Address <span className="text-red-500">*</span>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Email Address <span className="text-[#ff4a9e]">*</span>
                   </label>
                   <Input
                     name="email"
@@ -392,61 +401,45 @@ const Registration = () => {
                     placeholder="john@company.com"
                     value={formFields.email}
                     onChange={handleChange}
-                    className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                     required
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Contact Number <span className="text-red-500">*</span>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Contact Number <span className="text-[#ff4a9e]">*</span>
                   </label>
-
-                  <div className="flex gap-2">
-                    {/* Country Code Selector */}
-                    <div className="relative w-32 shrink-0">
+                  <div className="flex gap-3">
+                    <div className="relative w-36 shrink-0">
                       <select
                         value={countryCode}
                         onChange={(e) => setCountryCode(e.target.value)}
                         disabled={isCountriesLoading}
-                        className="w-full h-12 pl-3 pr-8 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 appearance-none cursor-pointer truncate"
+                        className="w-full h-14 pl-4 pr-8 bg-black/50 border border-white/10 text-white rounded-xl focus:outline-none focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] appearance-none cursor-pointer font-medium"
                       >
                         {isCountriesLoading ? (
-                          <option>Loading...</option>
+                          <option>Wait...</option>
                         ) : (
                           countries.map((country) => (
-                            <option key={country.cca2} value={country.code}>
+                            <option key={country.cca2} value={country.code} className="bg-[#1c1c1c]">
                               {country.code} ({country.name})
                             </option>
                           ))
                         )}
                       </select>
-
-                      {/* Chevron Icon */}
-                      <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M19 9l-7 7-7-7"
-                          ></path>
+                      <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                       </div>
                     </div>
-
-                    {/* Phone Number Input */}
                     <Input
-                      name="contactNo" // This updates formFields.contactNo (Local part only)
+                      name="contactNo"
                       type="number"
                       placeholder="98765 43210"
                       value={formFields.contactNo}
                       onChange={handleChange}
-                      className="h-12 bg-slate-50 border-slate-200 focus:border-blue-600 focus:ring-blue-600/20 w-full"
+                      className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl w-full font-medium"
                       required
                     />
                   </div>
@@ -454,14 +447,14 @@ const Registration = () => {
               </div>
 
               {/* Password Block */}
-              <div className="mt-6 space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Secure Password <span className="text-red-500">*</span>
+              <div className="mt-8 space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Secure Password <span className="text-[#ff4a9e]">*</span>
                 </label>
                 <div className="relative">
                   <Input
                     id={id}
-                    className="pe-9 h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 pl-4 pr-12 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium transition-all"
                     placeholder="Create a strong password"
                     type={isVisible ? "text" : "password"}
                     value={password}
@@ -470,42 +463,36 @@ const Registration = () => {
                   <button
                     type="button"
                     onClick={toggleVisibility}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 hover:text-white transition-colors"
                   >
-                    {isVisible ? (
-                      <EyeOffIcon size={16} />
-                    ) : (
-                      <EyeIcon size={16} />
-                    )}
+                    {isVisible ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
                   </button>
                 </div>
 
                 {/* Password Strength Indicator */}
-                <div className="flex gap-1 h-1 mt-2">
+                <div className="flex gap-2 h-1.5 mt-4">
                   {[...Array(4)].map((_, i) => (
                     <div
                       key={i}
                       className={`h-full w-full rounded-full transition-all duration-300 ${
-                        i < strengthScore
-                          ? getStrengthColor(strengthScore)
-                          : "bg-slate-200"
+                        i < strengthScore ? getStrengthColor(strengthScore) : "bg-white/10"
                       }`}
                     ></div>
                   ))}
                 </div>
 
-                <div className="flex flex-wrap gap-3 mt-3">
+                <div className="flex flex-wrap gap-4 mt-4">
                   {strength.map((req, index) => (
                     <div
                       key={index}
-                      className={`flex items-center gap-1.5 text-xs ${
-                        req.met ? "text-emerald-600" : "text-slate-400"
+                      className={`flex items-center gap-2 text-xs font-bold tracking-wider uppercase ${
+                        req.met ? "text-[#0ae448]" : "text-slate-600"
                       }`}
                     >
                       {req.met ? (
-                        <CheckIcon size={12} strokeWidth={3} />
+                        <CheckIcon size={14} strokeWidth={3} />
                       ) : (
-                        <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                        <div className="w-3 h-3 rounded-full bg-white/10"></div>
                       )}
                       {req.text}
                     </div>
@@ -515,133 +502,133 @@ const Registration = () => {
             </section>
 
             {/* Section 2: The Empowering Admin Card */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 flex flex-col sm:flex-row items-start gap-4 shadow-sm">
-              <div className="bg-blue-100 p-3 rounded-full shrink-0">
-                <Crown className="w-6 h-6 text-yellow-500" />
+            <div className="bg-[#3b82f6]/10 border border-[#3b82f6]/30 rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row items-start gap-6 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#3b82f6]/20 blur-[40px] pointer-events-none rounded-full"></div>
+              <div className="bg-[#3b82f6]/20 p-4 rounded-xl shrink-0">
+                <Crown className="w-8 h-8 text-[#3b82f6]" />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900 mb-1">
+              <div className="relative z-10">
+                <h3 className="text-lg font-black text-white uppercase tracking-widest mb-2">
                   Admin Privileges
                 </h3>
-                <p className="text-slate-600 text-sm leading-relaxed">
+                <p className="text-slate-400 text-base font-medium leading-relaxed">
                   You are registering as the{" "}
-                  <span className="font-bold text-blue-500 bg-blue-100 px-1.5 py-0.5 rounded text-xs tracking-wide uppercase">
+                  <span className="font-black text-[#3b82f6] tracking-widest uppercase">
                     Boss
                   </span>
-                  . You will have exclusive control over organization settings,
-                  team roles, and workflows.
+                  . You will have exclusive control over organization settings, team roles, and workflows.
                 </p>
               </div>
             </div>
 
             {/* Section 3: Organization Details */}
             <section>
-              <div className="flex items-center gap-2 mb-6 border-b pb-2">
-                <Building2 className="w-5 h-5 text-yellow-500" />
-                <h2 className="text-lg font-semibold text-slate-800">
+              <div className="flex items-center gap-3 mb-8 border-b border-white/10 pb-4">
+                <Building2 className="w-6 h-6 text-[#ffcc00]" />
+                <h2 className="text-xl font-black uppercase tracking-widest text-white">
                   Organization Details
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Company Name <span className="text-red-500">*</span>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Company Name <span className="text-[#ff4a9e]">*</span>
                   </label>
                   <Input
                     name="companyName"
                     placeholder="Acme Corp"
                     value={formFields.companyName}
                     onChange={handleChange}
-                    className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                     required
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    GSTIN / Tax ID <span className="text-red-500">*</span>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    GSTIN / Tax ID <span className="text-[#ff4a9e]">*</span>
                   </label>
                   <Input
                     name="gstin"
                     placeholder="GSTIN123456"
                     value={formFields.gstin}
                     onChange={handleChange}
-                    className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                     required
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5 mb-6">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                  <MapPin size={14} /> Registered Address{" "}
-                  <span className="text-red-500">*</span>
+              <div className="space-y-2 mb-6">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                  <MapPin size={16} className="text-[#3b82f6]" /> Registered Address{" "}
+                  <span className="text-[#ff4a9e]">*</span>
                 </label>
                 <Input
                   name="address"
                   placeholder="Headquarters address"
                   value={formFields.address}
                   onChange={handleChange}
-                  className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                  className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="space-y-1.5 col-span-2 md:col-span-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    City <span className="text-red-500">*</span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="space-y-2 col-span-2 md:col-span-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    City <span className="text-[#ff4a9e]">*</span>
                   </label>
                   <Input
                     name="city"
                     value={formFields.city}
                     onChange={handleChange}
-                    className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                     required
                   />
                 </div>
-                <div className="space-y-1.5 col-span-2 md:col-span-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    State <span className="text-red-500">*</span>
+                <div className="space-y-2 col-span-2 md:col-span-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    State <span className="text-[#ff4a9e]">*</span>
                   </label>
                   <Input
                     name="state"
                     value={formFields.state}
                     onChange={handleChange}
-                    className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                     required
                   />
                 </div>
-                <div className="space-y-1.5 col-span-2 md:col-span-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Pincode <span className="text-red-500">*</span>
+                <div className="space-y-2 col-span-2 md:col-span-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Pincode <span className="text-[#ff4a9e]">*</span>
                   </label>
                   <Input
                     name="pincode"
                     type="number"
                     value={formFields.pincode}
                     onChange={handleChange}
-                    className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                     required
                   />
                 </div>
-                <div className="space-y-1.5 col-span-2 md:col-span-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <div className="space-y-2 col-span-2 md:col-span-1">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
                     Country
                   </label>
                   <Input
                     name="country"
                     value={formFields.country}
                     onChange={handleChange}
-                    className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                   />
                 </div>
               </div>
 
               {/* Logo & Website */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
                     Website URL
                   </label>
                   <Input
@@ -649,29 +636,29 @@ const Registration = () => {
                     placeholder="https://..."
                     value={formFields.websiteUrl}
                     onChange={handleChange}
-                    className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
+                    className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl font-medium"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Company Logo (URL) <span className="text-red-500">*</span>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                    Company Logo (URL) <span className="text-[#ff4a9e]">*</span>
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-4">
                     <Input
                       name="logoUrl"
                       placeholder="Image URL"
                       value={logoUrl}
                       onChange={(e) => setLogoUrl(e.target.value)}
-                      className="h-12 bg-slate-50 border-slate-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all flex-1"
+                      className="h-14 bg-black/50 border-white/10 text-white placeholder-slate-600 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6] rounded-xl flex-1 font-medium"
                     />
-                    <div className="w-10 h-10 border rounded bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="w-14 h-14 border border-white/10 rounded-xl bg-black flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
                       <img
                         src={
                           logoUrl ||
-                          "https://img.icons8.com/?size=100&id=114320&format=png&color=000000"
+                          "https://img.icons8.com/?size=100&id=114320&format=png&color=ffffff"
                         }
                         alt="Logo"
-                        className="w-full h-full object-contain"
+                        className={`w-full h-full object-contain ${!logoUrl && 'opacity-30'}`}
                       />
                     </div>
                   </div>
@@ -680,27 +667,29 @@ const Registration = () => {
             </section>
 
             {/* Submit Action */}
-            <div className="pt-4 pb-12">
+            <div className="pt-8 pb-24">
               <button
                 type="submit"
-                disabled={!isFormValid}
-                className={`w-full flex items-center justify-center gap-2 py-4 rounded-lg font-bold text-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                disabled={!isFormValid || isRegistering}
+                className={`w-full flex items-center justify-center gap-3 py-5 rounded-xl font-black text-lg uppercase tracking-widest transition-all ${
                   isFormValid
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                    ? "bg-[#3b82f6] text-white hover:bg-white hover:text-black shadow-[0_0_30px_rgba(59,130,246,0.3)] transform hover:-translate-y-1 group"
+                    : "bg-white/5 text-slate-500 cursor-not-allowed border border-white/10"
                 }`}
               >
                 {isRegistering ? (
-                  <Loader size={20} className="animate-spin" />
+                  <>
+                    <Loader size={24} className="animate-spin" />
+                    Initializing...
+                  </>
                 ) : (
                   <>
-                    Register Organization <ArrowRight size={20} />
+                    Launch Workspace <ArrowRight size={24} className={isFormValid ? "group-hover:translate-x-1 transition-transform" : ""} />
                   </>
                 )}
               </button>
-              <p className="text-center text-xs text-slate-400 mt-4">
-                By clicking Register, you agree to our Terms of Service and
-                Privacy Policy.
+              <p className="text-center text-sm font-medium text-slate-500 mt-6">
+                By launching, you agree to our <a href="/terms" className="text-[#3b82f6] hover:text-white transition-colors">Terms of Service</a> and <a href="/privacy" className="text-[#3b82f6] hover:text-white transition-colors">Privacy Policy</a>.
               </p>
             </div>
           </form>

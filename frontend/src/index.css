@@ -163,7 +163,7 @@
 
 /* Track (Matches your dark background) */
 *::-webkit-scrollbar-track {
-  background: #0e100f; 
+  /* background: #0e100f;  */
 }
 
 /* Thumb (Subtle dark gray, matches your Bento cards) */
