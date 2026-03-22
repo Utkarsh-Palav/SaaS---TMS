@@ -7,6 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "seed:permissions": "node scripts/seedPermissions.js",
+    "seed:demo": "node scripts/seedDemoData.js",
+    "seed:demo:force": "node scripts/seedDemoForce.js",
     "test:email": "node scripts/testSendEmail.js",
     "diagnose:sendgrid": "node scripts/diagnoseSendGrid.js"
   },

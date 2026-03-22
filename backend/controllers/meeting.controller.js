@@ -115,6 +115,27 @@ export const createMeeting = async (req, res) => {
   }
 };
 
+export const getMeetingById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const organizationId = req.user.organizationId;
+
+    const meeting = await Meeting.findOne({ _id: id, organizationId })
+      .populate("host", "firstName middleName lastName email profileImage")
+      .populate("participants", "firstName middleName lastName email profileImage")
+      .populate("roomId", "name capacity floor amenities");
+
+    if (!meeting) {
+      return res.status(404).json({ message: "Meeting not found." });
+    }
+
+    res.status(200).json(meeting);
+  } catch (error) {
+    console.error("Error fetching meeting:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const getMeetings = async (req, res) => {
   try {
     const organizationId = req.user.organizationId;
