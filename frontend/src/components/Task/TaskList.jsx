@@ -11,15 +11,14 @@ import {
 import { Link } from "react-router-dom";
 
 const TaskList = ({ tasks, loading, handleDeleteTask, user, navigate }) => {
-  console.log(tasks);
   if (tasks.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="text-slate-300" size={32} />
+      <div className="bg-card rounded-2xl border border-border p-12 text-center">
+        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle className="text-muted-foreground" size={32} />
         </div>
-        <h3 className="text-lg font-bold text-slate-900">No tasks found</h3>
-        <p className="text-slate-500">
+        <h3 className="text-lg font-bold text-foreground">No tasks found</h3>
+        <p className="text-muted-foreground">
           Try adjusting your filters or create a new task.
         </p>
       </div>
@@ -27,43 +26,43 @@ const TaskList = ({ tasks, loading, handleDeleteTask, user, navigate }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-slate-50/50 border-b border-slate-200">
+          <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Task
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Priority
               </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Assignee
               </th>
-              <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {tasks.map((task) => (
               <tr
                 key={task._id}
-                className="group hover:bg-blue-50/30 transition-colors"
+                className="group hover:bg-primary/5 transition-colors"
               >
                 <td className="px-6 py-4">
                   <div
                     onClick={() => navigate(`/tasks/${task._id}`)}
                     className="cursor-pointer"
                   >
-                    <div className="font-semibold text-slate-900">
+                    <div className="font-semibold text-foreground">
                       {task.title}
                     </div>
-                    <div className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                    <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
                       {task.description}
                     </div>
                   </div>
@@ -77,7 +76,7 @@ const TaskList = ({ tasks, loading, handleDeleteTask, user, navigate }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     {task.assignedManager?.profileImage ? (
-                      <div className="rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">
+                      <div className="rounded-full bg-muted flex items-center justify-center text-xs font-bold">
                         <a href={task.assignedManager?.profileImage} target="_blank" className="h-8 w-8 rounded-full">
                           <img
                             src={task.assignedManager?.profileImage}
@@ -87,12 +86,12 @@ const TaskList = ({ tasks, loading, handleDeleteTask, user, navigate }) => {
                         </a>
                       </div>
                     ) : (
-                      <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
                         {task.assignedManager?.firstName?.[0]}
                       </div>
                     )}
 
-                    <span className="text-sm text-slate-600">
+                    <span className="text-sm text-muted-foreground">
                       {task.assignedManager?.firstName}{" "}
                       {task.assignedManager?.lastName}
                     </span>
@@ -103,14 +102,14 @@ const TaskList = ({ tasks, loading, handleDeleteTask, user, navigate }) => {
                     {user.role.name === "Boss" && (
                       <button
                         onClick={() => handleDeleteTask(task._id)}
-                        className="p-2 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-2 hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Trash2 size={16} />
                       </button>
                     )}
                     <button
                       onClick={() => navigate(`/tasks/${task._id}`)}
-                      className="p-2 hover:bg-slate-100 text-slate-400 hover:text-blue-600 rounded-lg"
+                      className="p-2 hover:bg-accent text-muted-foreground hover:text-primary rounded-lg"
                     >
                       <MoreHorizontal size={16} />
                     </button>
@@ -128,10 +127,10 @@ const TaskList = ({ tasks, loading, handleDeleteTask, user, navigate }) => {
 // Badges
 const StatusBadge = ({ status }) => {
   const styles = {
-    Completed: "bg-emerald-100 text-emerald-700",
-    "In Progress": "bg-blue-100 text-blue-700",
-    Pending: "bg-slate-100 text-slate-600",
-    Overdue: "bg-rose-100 text-rose-700",
+    Completed: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    "In Progress": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    Pending: "bg-muted text-muted-foreground",
+    Overdue: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
   };
   return (
     <span
@@ -146,9 +145,9 @@ const StatusBadge = ({ status }) => {
 
 const PriorityBadge = ({ priority }) => {
   const styles = {
-    High: "text-rose-600 bg-rose-50 border-rose-100",
-    Medium: "text-amber-600 bg-amber-50 border-amber-100",
-    Low: "text-emerald-600 bg-emerald-50 border-emerald-100",
+    High: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20",
+    Medium: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
+    Low: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
   };
   return (
     <span

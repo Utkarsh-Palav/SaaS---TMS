@@ -42,7 +42,6 @@ const EmpDetails = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch Data
   const getEmployee = async (id) => {
     try {
       const res = await axios.get(
@@ -64,7 +63,6 @@ const EmpDetails = () => {
     getEmployee(employeeId);
   }, [employeeId]);
 
-  // Helpers
   const getInitials = (name) => name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().substring(0, 2) : "??";
   
   const formatHours = (seconds) => {
@@ -74,44 +72,44 @@ const EmpDetails = () => {
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case "Completed": return "bg-emerald-100 text-emerald-700 border-emerald-200";
-      case "In Progress": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "Pending": return "bg-amber-100 text-amber-700 border-amber-200";
-      case "Overdue": return "bg-rose-100 text-rose-700 border-rose-200";
-      default: return "bg-slate-100 text-slate-600 border-slate-200";
+      case "Completed": return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+      case "In Progress": return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
+      case "Pending": return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+      case "Overdue": return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+      default: return "bg-muted text-muted-foreground border-border";
     }
   };
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-           <p className="text-slate-500 font-medium animate-pulse">Loading Profile...</p>
+           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+           <p className="text-muted-foreground font-medium animate-pulse">Loading Profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="flex h-screen bg-background font-sans text-foreground">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
+        <header className="bg-card border-b border-border h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-muted-foreground hover:bg-accent rounded-lg">
               <Menu size={24} />
             </button>
-            <button onClick={() => navigate("/employees")} className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors group">
+            <button onClick={() => navigate("/employees")} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Team
             </button>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={toggleNotificationPanel} className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+            <button onClick={toggleNotificationPanel} className="relative p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors">
               <Bell size={22} />
-              {notifications?.length > 0 && <span className="absolute top-1.5 right-2 h-2.5 w-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse"></span>}
+              {notifications?.length > 0 && <span className="absolute top-1.5 right-2 h-2.5 w-2.5 bg-rose-500 rounded-full ring-2 ring-card animate-pulse"></span>}
             </button>
           </div>
         </header>
@@ -122,13 +120,12 @@ const EmpDetails = () => {
             
             {/* 1. UNIFIED PROFILE CARD */}
             <AnimatedContent direction="vertical" distance={20}>
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden group">
+              <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden group">
                 
-                {/* Banner - Now with a subtle pattern */}
+                {/* Banner */}
                 <div className="h-48 bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 relative">
                    <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%,transparent_100%)] bg-size-[20px_20px] opacity-20"></div>
                    
-                   {/* Edit Button on Banner */}
                    <div className="absolute top-4 right-4 flex gap-2">
                       <button 
                         onClick={() => setIsEditing(!isEditing)}
@@ -142,18 +139,17 @@ const EmpDetails = () => {
                 <div className="px-8 pb-8">
                    <div className="flex flex-col lg:flex-row gap-6 relative">
                       
-                      {/* Avatar - Fixed overlap using negative margin and ring */}
+                      {/* Avatar */}
                       <div className="-mt-16 shrink-0 flex flex-col items-center lg:items-start relative z-10">
-                         <div className="h-32 w-32 rounded-full p-1 bg-white shadow-xl ring-4 ring-white relative">
+                         <div className="h-32 w-32 rounded-full p-1 bg-card shadow-xl ring-4 ring-card relative">
                             {employeeData?.profileImage ? (
                                <img src={employeeData.profileImage} alt="Profile" className="h-full w-full rounded-full object-cover" />
                             ) : (
-                               <div className="h-full w-full rounded-full bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400">
+                               <div className="h-full w-full rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground">
                                   {getInitials(employeeData?.firstName)}
                                </div>
                             )}
-                            {/* Status Indicator */}
-                            <span className="absolute bottom-2 right-2 h-5 w-5 bg-emerald-500 border-4 border-white rounded-full" title="Active"></span>
+                            <span className="absolute bottom-2 right-2 h-5 w-5 bg-emerald-500 border-4 border-card rounded-full" title="Active"></span>
                          </div>
                       </div>
 
@@ -161,23 +157,22 @@ const EmpDetails = () => {
                       <div className="flex-1 pt-4 text-center lg:text-left">
                          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
                             <div>
-                               <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{employeeData?.firstName}{" "}{employeeData?.lastName}</h1>
-                               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mt-2 text-slate-600 font-medium text-sm">
-                                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                               <h1 className="text-3xl font-bold text-foreground tracking-tight">{employeeData?.firstName}{" "}{employeeData?.lastName}</h1>
+                               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mt-2 text-muted-foreground font-medium text-sm">
+                                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                                     <Briefcase size={14} /> {employeeData?.jobTitle}
                                   </span>
-                                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200">
+                                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted text-muted-foreground border border-border">
                                     <Building size={14} /> {employeeData?.departmentId?.name || "No Dept"}
                                   </span>
-                                  <span className="flex items-center gap-1.5 text-slate-500">
+                                  <span className="flex items-center gap-1.5 text-muted-foreground">
                                     <MapPin size={14} /> {employeeData?.city || "Remote"}, {employeeData?.country}
                                   </span>
                                </div>
                             </div>
                             
-                            {/* Primary Action Button */}
                             <div className="flex items-center gap-3">
-                               <button className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+                               <button className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95">
                                   <MessageSquare size={18} /> Message
                                </button>
                             </div>
@@ -185,31 +180,31 @@ const EmpDetails = () => {
                       </div>
                    </div>
 
-                   {/* Stats Grid - Enhanced with colored backgrounds for icons */}
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-slate-100">
+                   {/* Stats Grid */}
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-border">
                       <ProfileStat 
                         label="Tasks Done" 
                         value={taskDetails?.completedTaskCount || 0} 
-                        icon={<CheckCircle2 size={20} className="text-emerald-600"/>} 
-                        bgColor="bg-emerald-50"
+                        icon={<CheckCircle2 size={20} className="text-emerald-600 dark:text-emerald-400"/>} 
+                        bgColor="bg-emerald-500/10"
                       />
                       <ProfileStat 
                         label="Active Tasks" 
                         value={taskDetails?.totalAssignedTasks || 0} 
-                        icon={<Hash size={20} className="text-blue-600"/>} 
-                        bgColor="bg-blue-50"
+                        icon={<Hash size={20} className="text-blue-600 dark:text-blue-400"/>} 
+                        bgColor="bg-blue-500/10"
                       />
                       <ProfileStat 
                         label="Hours Logged" 
                         value={formatHours(activityLog?.durationInSeconds)} 
-                        icon={<Clock size={20} className="text-amber-600"/>} 
-                        bgColor="bg-amber-50"
+                        icon={<Clock size={20} className="text-amber-600 dark:text-amber-400"/>} 
+                        bgColor="bg-amber-500/10"
                       />
                       <ProfileStat 
                         label="Last Active" 
                         value={activityLog?.loginTime ? format(parseISO(activityLog.loginTime), "MMM dd") : "N/A"} 
-                        icon={<Calendar size={20} className="text-violet-600"/>} 
-                        bgColor="bg-violet-50"
+                        icon={<Calendar size={20} className="text-violet-600 dark:text-violet-400"/>} 
+                        bgColor="bg-violet-500/10"
                       />
                    </div>
                 </div>
@@ -219,10 +214,10 @@ const EmpDetails = () => {
             {/* Editing Form Overlay */}
             {isEditing && (
                <AnimatedContent>
-                  <div className="bg-white rounded-2xl border border-blue-200 shadow-lg p-6 mb-6 ring-4 ring-blue-50/50 relative overflow-hidden">
-                     <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                     <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                        <PenSquare className="text-blue-600" size={20} /> Edit Employee Information
+                  <div className="bg-card rounded-2xl border border-primary/20 shadow-lg p-6 mb-6 ring-4 ring-primary/5 relative overflow-hidden">
+                     <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                     <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+                        <PenSquare className="text-primary" size={20} /> Edit Employee Information
                      </h2>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <InputField label="Full Name" value={employeeData.username} onChange={(e) => setEmployeeData({...employeeData, username: e.target.value})} />
@@ -230,9 +225,9 @@ const EmpDetails = () => {
                         <InputField label="Email Address" value={employeeData.email} onChange={(e) => setEmployeeData({...employeeData, email: e.target.value})} type="email" />
                         <InputField label="Phone Number" value={employeeData.contactNo} onChange={(e) => setEmployeeData({...employeeData, contactNo: e.target.value})} />
                         <div className="md:col-span-2">
-                           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bio / Description</label>
+                           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Bio / Description</label>
                            <textarea 
-                              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none h-24"
+                              className="w-full p-3 bg-muted border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none h-24 text-foreground placeholder:text-muted-foreground"
                               value={employeeData.bio || ""}
                               onChange={(e) => setEmployeeData({...employeeData, bio: e.target.value})}
                               placeholder="Write a short bio..."
@@ -242,13 +237,13 @@ const EmpDetails = () => {
                      <div className="mt-6 flex justify-end gap-3">
                         <button 
                            onClick={() => setIsEditing(false)}
-                           className="px-4 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all"
+                           className="px-4 py-2.5 text-muted-foreground font-bold hover:bg-accent rounded-xl transition-all"
                         >
                            Cancel
                         </button>
                         <button 
-                           onClick={() => setIsEditing(false)} // Add actual save logic here later
-                           className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+                           onClick={() => setIsEditing(false)}
+                           className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95"
                         >
                            <Save size={18} /> Save Changes
                         </button>
@@ -263,8 +258,8 @@ const EmpDetails = () => {
                {/* LEFT COLUMN: Contact & Info */}
                <div className="space-y-6">
                   {/* Contact Card */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
-                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <div className="bg-card p-6 rounded-2xl border border-border shadow-sm h-fit">
+                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                         <Shield size={14} /> Contact Details
                      </h3>
                      <div className="space-y-5">
@@ -276,17 +271,17 @@ const EmpDetails = () => {
                   </div>
 
                   {/* Skills Card */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
-                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Skills & Expertise</h3>
+                  <div className="bg-card p-6 rounded-2xl border border-border shadow-sm h-fit">
+                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">Skills & Expertise</h3>
                      <div className="flex flex-wrap gap-2">
                         {employeeData?.skills?.length > 0 ? (
                            employeeData.skills.map((skill, idx) => (
-                              <span key={idx} className="px-3 py-1.5 bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold border border-slate-200 hover:border-blue-300 hover:text-blue-600 transition-colors cursor-default">
+                              <span key={idx} className="px-3 py-1.5 bg-muted text-foreground rounded-lg text-xs font-semibold border border-border hover:border-primary/30 hover:text-primary transition-colors cursor-default">
                                  {skill}
                               </span>
                            ))
                         ) : (
-                           <p className="text-sm text-slate-400 italic">No skills listed yet.</p>
+                           <p className="text-sm text-muted-foreground italic">No skills listed yet.</p>
                         )}
                      </div>
                   </div>
@@ -296,47 +291,46 @@ const EmpDetails = () => {
                <div className="lg:col-span-2 space-y-6">
                   
                   {/* About Section */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">About</h3>
-                     <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                  <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">About</h3>
+                     <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
                         {employeeData?.bio || "This user has not added a bio yet."}
                      </p>
                   </div>
 
-                  {/* Tasks Table - Improved Visuals */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                     <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                           <CheckCircle2 size={16} className="text-slate-400"/> Recent Tasks
+                  {/* Tasks Table */}
+                  <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+                     <div className="p-6 border-b border-border flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                           <CheckCircle2 size={16} className="text-muted-foreground"/> Recent Tasks
                         </h3>
-                        <button className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+                        <button className="text-xs font-bold text-primary hover:text-primary/80 hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors">
                            View All History
                         </button>
                      </div>
-                     <div className="divide-y divide-slate-100">
+                     <div className="divide-y divide-border">
                         {taskList.length === 0 ? (
-                           <div className="p-12 text-center text-slate-400 flex flex-col items-center">
-                              <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                           <div className="p-12 text-center text-muted-foreground flex flex-col items-center">
+                              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
                                  <Briefcase size={20} className="opacity-50" />
                               </div>
                               <p className="text-sm">No tasks assigned recently.</p>
                            </div>
                         ) : (
                            taskList.slice(0, 5).map((task) => (
-                              <div key={task._id} className="p-4 hover:bg-slate-50/80 transition-colors flex items-center justify-between group cursor-pointer" onClick={() => navigate(`/tasks/${task._id}`)}>
+                              <div key={task._id} className="p-4 hover:bg-primary/5 transition-colors flex items-center justify-between group cursor-pointer" onClick={() => navigate(`/tasks/${task._id}`)}>
                                  <div className="flex items-center gap-4">
-                                    <div className={`p-2.5 rounded-xl shadow-sm ${task.status === 'Completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-white border border-slate-200 text-slate-500'}`}>
+                                    <div className={`p-2.5 rounded-xl shadow-sm ${task.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-card border border-border text-muted-foreground'}`}>
                                        {task.status === 'Completed' ? <CheckCircle2 size={18} /> : <Clock size={18} />}
                                     </div>
                                     <div>
-                                       <h4 className="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors">{task.title}</h4>
+                                       <h4 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">{task.title}</h4>
                                        <div className="flex items-center gap-3 mt-1">
-                                          <span className="text-xs text-slate-500 flex items-center gap-1">
+                                          <span className="text-xs text-muted-foreground flex items-center gap-1">
                                              <Calendar size={12} /> {task.deadline ? format(parseISO(task.deadline), "MMM dd") : "No Date"}
                                           </span>
-                                          {/* Priority Badge */}
                                           {task.priority === 'High' && (
-                                             <span className="flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">
+                                             <span className="flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
                                                 <AlertCircle size={10} /> High
                                              </span>
                                           )}
@@ -365,47 +359,36 @@ const EmpDetails = () => {
 
 // --- Sub-Components ---
 
-const StatItem = ({ label, value, icon }) => (
-   <div className="flex flex-col items-center justify-center p-2">
-      <div className="flex items-center gap-2 mb-1 text-slate-400">
-         {icon}
-         <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
-      </div>
-      <span className="text-xl font-bold text-slate-900">{value}</span>
-   </div>
-);
-
-// Updated Profile Stat with colored background container
 const ProfileStat = ({ label, value, icon, bgColor }) => (
-   <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-slate-100 hover:border-blue-200 transition-all hover:shadow-md group">
+   <div className="flex flex-col items-center justify-center p-4 bg-card rounded-2xl border border-border hover:border-primary/20 transition-all hover:shadow-md group">
       <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${bgColor}`}>
          {icon}
       </div>
-      <span className="text-2xl font-extrabold text-slate-900 tracking-tight">{value}</span>
-      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">{label}</span>
+      <span className="text-2xl font-extrabold text-foreground tracking-tight">{value}</span>
+      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">{label}</span>
    </div>
 );
 
 const InputField = ({ label, value, onChange, type = "text" }) => (
    <div>
-      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</label>
       <input 
          type={type} 
          value={value || ""} 
          onChange={onChange}
-         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+         className="w-full px-4 py-2.5 bg-muted border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-foreground"
       />
    </div>
 );
 
 const ContactRow = ({ icon, label, value }) => (
-   <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors group">
-      <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-white group-hover:text-blue-600 group-hover:shadow-sm transition-all border border-transparent group-hover:border-slate-200 shrink-0">
+   <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors group">
+      <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-card group-hover:text-primary group-hover:shadow-sm transition-all border border-transparent group-hover:border-border shrink-0">
          {icon}
       </div>
       <div className="overflow-hidden">
-         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{label}</p>
-         <p className="text-sm font-semibold text-slate-800 truncate">{value || "Not set"}</p>
+         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">{label}</p>
+         <p className="text-sm font-semibold text-foreground truncate">{value || "Not set"}</p>
       </div>
    </div>
 );

@@ -26,6 +26,7 @@ import {
 import DepartmentList from "@/components/Departments/DepartmentList";
 import DepartmentSummary from "@/components/Departments/DepartmentSummary";
 import DepartmentEmployeeDistribution from "@/components/Departments/DepartmentEmployeeDistribution";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const Departments = () => {
   const { user } = useAuth();
@@ -48,19 +49,16 @@ const Departments = () => {
 
   const isManagerOrBoss = user?.role?.name === "Boss" || user?.role?.name === "Manager";
 
-  // --- Fetch Data ---
   const fetchDepartments = async () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/department/details`, // Using details endpoint to get summary info directly if available
+        `${import.meta.env.VITE_API_URL}/api/department/details`,
         { withCredentials: true }
       );
-      // Handle response structure variation (array vs object)
       const data = Array.isArray(res.data) ? res.data : res.data.departments || [];
       setDepartments(data);
       
-      // Auto-select first department if none selected
       if (data.length > 0 && !selectedDepartmentId) {
          setSelectedDepartmentId(data[0]._id);
       }
@@ -76,7 +74,6 @@ const Departments = () => {
     fetchDepartments();
   }, []);
 
-  // --- Handlers ---
   const handleCreate = async (e) => {
     e.preventDefault();
     setIsCreating(true);
@@ -89,7 +86,7 @@ const Departments = () => {
       toast.success("Department created successfully");
       setIsCreateOpen(false);
       setNewDeptData({ name: "", description: "", budget: "" });
-      fetchDepartments(); // Refresh list
+      fetchDepartments();
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Failed to create department");
@@ -108,30 +105,30 @@ const Departments = () => {
      } catch(e) { toast.error("Delete failed") }
   }
 
-  // --- Filter ---
   const filteredDepartments = departments.filter(dept => 
     dept.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="flex h-screen bg-background font-sans text-foreground">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
+        <header className="bg-card border-b border-border h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
            <div className="flex items-center gap-4">
-              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg">
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-muted-foreground hover:bg-accent rounded-lg">
                 <Menu size={24} />
               </button>
-              <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                 <Building2 className="text-blue-600" size={24} /> Departments
+              <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+                 <Building2 className="text-primary" size={24} /> Departments
               </h1>
            </div>
            <div className="flex items-center gap-3">
-              <button onClick={toggleNotificationPanel} className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+              <ThemeToggle />
+              <button onClick={toggleNotificationPanel} className="relative p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors">
                  <Bell size={22} />
-                 {notifications?.length > 0 && <span className="absolute top-1.5 right-2 h-2.5 w-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse"></span>}
+                 {notifications?.length > 0 && <span className="absolute top-1.5 right-2 h-2.5 w-2.5 bg-rose-500 rounded-full ring-2 ring-card animate-pulse"></span>}
               </button>
            </div>
         </header>
@@ -143,11 +140,11 @@ const Departments = () => {
             {/* Actions Bar */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                <div className="relative w-full sm:w-80">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                   <input 
                     type="text" 
                     placeholder="Search departments..." 
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-sm placeholder:text-muted-foreground"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -156,7 +153,7 @@ const Departments = () => {
                {isManagerOrBoss && (
                   <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                      <DialogTrigger asChild>
-                        <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+                        <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95">
                            <Plus size={18} className="mr-2" /> New Department
                         </Button>
                      </DialogTrigger>
@@ -166,31 +163,31 @@ const Departments = () => {
                         </DialogHeader>
                         <form onSubmit={handleCreate} className="space-y-4 mt-4">
                            <div className="space-y-1.5">
-                              <label className="text-xs font-bold text-slate-500 uppercase">Name</label>
+                              <label className="text-xs font-bold text-muted-foreground uppercase">Name</label>
                               <input 
-                                className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" 
+                                className="w-full p-2.5 border border-border bg-background rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
                                 placeholder="e.g. Engineering"
                                 value={newDeptData.name} onChange={e => setNewDeptData({...newDeptData, name: e.target.value})} required
                               />
                            </div>
                            <div className="space-y-1.5">
-                              <label className="text-xs font-bold text-slate-500 uppercase">Description</label>
+                              <label className="text-xs font-bold text-muted-foreground uppercase">Description</label>
                               <textarea 
-                                className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none min-h-20" 
+                                className="w-full p-2.5 border border-border bg-background rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none min-h-20" 
                                 placeholder="What does this team do?"
                                 value={newDeptData.description} onChange={e => setNewDeptData({...newDeptData, description: e.target.value})}
                               />
                            </div>
                            <div className="space-y-1.5">
-                              <label className="text-xs font-bold text-slate-500 uppercase">Budget ($)</label>
+                              <label className="text-xs font-bold text-muted-foreground uppercase">Budget ($)</label>
                               <input 
                                 type="number"
-                                className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" 
+                                className="w-full p-2.5 border border-border bg-background rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
                                 placeholder="0"
                                 value={newDeptData.budget} onChange={e => setNewDeptData({...newDeptData, budget: e.target.value})}
                               />
                            </div>
-                           <Button type="submit" disabled={isCreating} className="w-full bg-blue-600 hover:bg-blue-700 mt-4">
+                           <Button type="submit" disabled={isCreating} className="w-full bg-primary hover:bg-primary/90 mt-4">
                               {isCreating ? <Loader2 className="animate-spin mr-2"/> : "Create Department"}
                            </Button>
                         </form>
@@ -203,9 +200,9 @@ const Departments = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 ">
                
                {/* List (Left) */}
-               <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[70vh]">
-                  <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                     <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">All Departments</h3>
+               <div className="lg:col-span-1 bg-card rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col max-h-[70vh]">
+                  <div className="p-4 border-b border-border bg-muted/50">
+                     <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">All Departments</h3>
                   </div>
                   <div className="flex-1 overflow-y-auto scrollbar-thin">
                      <DepartmentList 
@@ -229,7 +226,7 @@ const Departments = () => {
                         <DepartmentEmployeeDistribution departmentId={selectedDepartmentId} />
                      </>
                   ) : (
-                     <div className="h-full flex flex-col items-center justify-center text-slate-400 bg-white rounded-2xl border border-slate-200 border-dashed">
+                     <div className="h-full flex flex-col items-center justify-center text-muted-foreground bg-card rounded-2xl border border-border border-dashed">
                         <Building2 size={48} className="mb-4 opacity-50" />
                         <p>Select a department to view details.</p>
                      </div>

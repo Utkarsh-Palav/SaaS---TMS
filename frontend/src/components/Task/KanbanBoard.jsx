@@ -6,7 +6,7 @@ import {
   useSensors,
   TouchSensor,
   useDroppable,
-  DragOverlay, // 👈 Import this
+  DragOverlay,
   defaultDropAnimationSideEffects,
   MouseSensor, 
 } from "@dnd-kit/core";
@@ -16,27 +16,24 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { MoreHorizontal, Calendar } from "lucide-react";
 
-// Column Definitions
+// Column Definitions — themed
 const columns = [
-  { id: "Pending", title: "To Do", color: "bg-slate-100 border-slate-200" },
-  { id: "In Progress", title: "In Progress", color: "bg-blue-50 border-blue-100" },
-  { id: "Completed", title: "Done", color: "bg-emerald-50 border-emerald-100" },
-  { id: "Overdue", title: "Overdue", color: "bg-rose-50 border-rose-100" },
+  { id: "Pending", title: "To Do", color: "bg-muted/50 border-border" },
+  { id: "In Progress", title: "In Progress", color: "bg-blue-500/5 border-blue-500/20 dark:bg-blue-500/10" },
+  { id: "Completed", title: "Done", color: "bg-emerald-500/5 border-emerald-500/20 dark:bg-emerald-500/10" },
+  { id: "Overdue", title: "Overdue", color: "bg-rose-500/5 border-rose-500/20 dark:bg-rose-500/10" },
 ];
 
 const KanbanBoard = ({ tasks, onUpdateStatus, navigate }) => {
-  // State to track the specific task currently being dragged
   const [activeTask, setActiveTask] = useState(null);
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
-      // Require the mouse to move by 10 pixels before activating (prevents accidental clicks)
       activationConstraint: {
         distance: 10,
       },
     }),
     useSensor(TouchSensor, {
-      // Press and hold for 250ms to start dragging (allows scrolling if swiped quickly)
       activationConstraint: {
         delay: 250,
         tolerance: 5,
@@ -53,7 +50,6 @@ const KanbanBoard = ({ tasks, onUpdateStatus, navigate }) => {
   const handleDragEnd = (event) => {
     const { active, over } = event;
     
-    // Reset active task immediately
     setActiveTask(null);
 
     if (!over) return;
@@ -78,7 +74,6 @@ const KanbanBoard = ({ tasks, onUpdateStatus, navigate }) => {
     }
   };
 
-  // Smooth drop animation configuration
   const dropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
       styles: {
@@ -93,7 +88,7 @@ const KanbanBoard = ({ tasks, onUpdateStatus, navigate }) => {
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
-      onDragStart={handleDragStart} // 👈 Track start
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       <div className="flex flex-col lg:flex-row h-full gap-6 overflow-x-auto pb-4 items-start">
@@ -109,9 +104,6 @@ const KanbanBoard = ({ tasks, onUpdateStatus, navigate }) => {
         ))}
       </div>
 
-      {/* The DragOverlay renders the card UNDER the cursor. 
-         It sits outside the normal document flow (via Portal).
-      */}
       <DragOverlay dropAnimation={dropAnimation}>
         {activeTask ? (
           <TaskCard task={activeTask} isOverlay />
@@ -131,13 +123,13 @@ const KanbanColumn = ({ id, title, tasks, color, navigate }) => {
       className={`flex-1 min-w-[280px] w-full lg:w-auto rounded-2xl border ${color} p-4 flex flex-col h-full max-h-[calc(100vh-220px)]`}
     >
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-slate-700 flex items-center gap-2">
+        <h3 className="font-bold text-foreground flex items-center gap-2">
           {title}
-          <span className="bg-white px-2 py-0.5 rounded-full text-xs border shadow-sm">
+          <span className="bg-card px-2 py-0.5 rounded-full text-xs border border-border shadow-sm text-muted-foreground">
             {tasks.length}
           </span>
         </h3>
-        <button className="text-slate-400 hover:text-slate-600">
+        <button className="text-muted-foreground hover:text-foreground transition-colors">
           <MoreHorizontal size={16} />
         </button>
       </div>
@@ -147,7 +139,7 @@ const KanbanColumn = ({ id, title, tasks, color, navigate }) => {
           <SortableTaskItem key={task._id} task={task} navigate={navigate} />
         ))}
         {tasks.length === 0 && (
-            <div className="h-24 border-2 border-dashed border-slate-300/50 rounded-xl flex items-center justify-center text-slate-400 text-xs italic">
+            <div className="h-24 border-2 border-dashed border-border rounded-xl flex items-center justify-center text-muted-foreground text-xs italic">
                 Drop here
             </div>
         )}
@@ -156,7 +148,6 @@ const KanbanColumn = ({ id, title, tasks, color, navigate }) => {
   );
 };
 
-// Wrapper that adds Sortable logic to the Card
 const SortableTaskItem = ({ task, navigate }) => {
   const {
     attributes,
@@ -164,7 +155,7 @@ const SortableTaskItem = ({ task, navigate }) => {
     setNodeRef,
     transform,
     transition,
-    isDragging, // We use this to hide the original while dragging
+    isDragging,
   } = useSortable({ id: task._id });
 
   const style = {
@@ -181,22 +172,20 @@ const SortableTaskItem = ({ task, navigate }) => {
   );
 };
 
-// --- PURE UI COMPONENT (The Card Design) ---
-// Separated so we can reuse it in the Overlay without the Sortable logic
 const TaskCard = ({ task, onClick, isOverlay }) => {
   const getPriorityColor = (p) => {
-    if (p === "High") return "text-rose-600 bg-rose-50 border-rose-100";
-    if (p === "Medium") return "text-amber-600 bg-amber-50 border-amber-100";
-    return "text-emerald-600 bg-emerald-50 border-emerald-100";
+    if (p === "High") return "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20";
+    if (p === "Medium") return "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20";
+    return "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
   };
 
   return (
     <div
       onClick={onClick}
       className={`
-        bg-white p-4 rounded-xl border border-slate-200 shadow-sm 
+        bg-card p-4 rounded-xl border border-border shadow-sm 
         group relative transition-all
-        ${!isOverlay ? "hover:shadow-md hover:-translate-y-1 cursor-grab active:cursor-grabbing" : "cursor-grabbing shadow-2xl scale-105 rotate-2 ring-2 ring-blue-500 ring-offset-2"}
+        ${!isOverlay ? "hover:shadow-md hover:-translate-y-1 cursor-grab active:cursor-grabbing" : "cursor-grabbing shadow-2xl scale-105 rotate-2 ring-2 ring-primary ring-offset-2 ring-offset-background"}
       `}
     >
       <div className="flex justify-between items-start mb-2">
@@ -212,7 +201,7 @@ const TaskCard = ({ task, onClick, isOverlay }) => {
             className={`text-xs font-medium flex items-center gap-1 ${
               new Date(task.deadline) < new Date()
                 ? "text-rose-500"
-                : "text-slate-400"
+                : "text-muted-foreground"
             }`}
           >
             <Calendar size={12} />
@@ -224,23 +213,23 @@ const TaskCard = ({ task, onClick, isOverlay }) => {
         )}
       </div>
 
-      <h4 className="font-semibold text-slate-800 mb-1 line-clamp-2 text-sm">
+      <h4 className="font-semibold text-foreground mb-1 line-clamp-2 text-sm">
         {task.title}
       </h4>
-      <p className="text-xs text-slate-500 line-clamp-2 mb-3">
+      <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
         {task.description}
       </p>
 
-      <div className="flex items-center justify-between border-t border-slate-50 pt-3 mt-1">
+      <div className="flex items-center justify-between border-t border-border pt-3 mt-1">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+          <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-sm">
             {task.assignedManager?.username?.charAt(0).toUpperCase() || "?"}
           </div>
-          <span className="text-xs text-slate-500 truncate max-w-[80px]">
+          <span className="text-xs text-muted-foreground truncate max-w-[80px]">
             {task.assignedManager?.username}
           </span>
         </div>
-        <div className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded border border-slate-200 truncate max-w-[80px]">
+        <div className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-1 rounded border border-border truncate max-w-[80px]">
           {task.department?.name || "General"}
         </div>
       </div>

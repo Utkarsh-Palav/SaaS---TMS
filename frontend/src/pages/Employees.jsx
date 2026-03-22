@@ -17,6 +17,8 @@ import {
   UserPlus,
   X,
   User,
+  Menu,
+  Bell,
 } from "lucide-react";
 import EmployeeDirectory from "@/components/Employee/EmployeeDirectory ";
 import EmployeeStats from "@/components/Employee/EmployeeStats";
@@ -50,6 +52,7 @@ import NotificationPanel from "@/components/Dashboard/NotificationPanel";
 import { useNotifications } from "@/context/NotificationContext";
 import DepartmentsChart from "@/components/Dashboard/DepartmentsChart";
 import ProfileImage from "@/components/ui/ProfileImage";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const EMPLOYEES_PER_PAGE = 6;
 
@@ -64,7 +67,7 @@ const calculatePercentageChange = (current, previous) => {
 
 const InputGroup = ({ label, children }) => (
   <div className="space-y-1.5">
-    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
       {label} <span className="text-red-500">*</span>
     </label>
     {children}
@@ -316,7 +319,7 @@ const EmployeesPage = () => {
   }, [searchTerm, employee]);
 
   const inputClass =
-    "w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all";
+    "w-full px-3 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground";
 
   useEffect(() => {
     getAllEmployee();
@@ -409,35 +412,21 @@ const EmployeesPage = () => {
     };
   }, [user?.organizationId?._id]);
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background font-sans text-foreground">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm z-10">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex">
+        <header className="bg-card border-b border-border h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
+              <div className="flex items-center gap-4">
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden"
+                  className="lg:hidden p-2 text-muted-foreground hover:bg-accent rounded-lg"
                 >
-                  <svg
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h7"
-                    />
-                  </svg>
+                  <Menu size={24} />
                 </button>
-                <div className="ml-4 flex flex-col items-center lg:ml-0 relative w-64">
+                <div className="flex flex-col items-center relative w-64">
                   <div className="relative w-full">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <SearchIcon className="h-5 w-5 text-gray-400" />
+                      <SearchIcon className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <input
                       value={searchTerm}
@@ -446,7 +435,7 @@ const EmployeesPage = () => {
                       onBlur={() =>
                         setTimeout(() => setShowSuggestions(false), 150)
                       }
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-2 border border-border rounded-xl leading-5 bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                       placeholder="Search by name, role, or department..."
                       type="text"
                       autoComplete="off"
@@ -456,16 +445,16 @@ const EmployeesPage = () => {
                         onClick={clearSearchTerm}
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       >
-                        <RxCross1 className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        <RxCross1 className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                       </button>
                     )}
                   </div>
                   {showSuggestions && searchSuggestions.length > 0 && (
-                    <ul className="absolute z-20 w-full mt-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    <ul className="absolute z-20 w-full mt-10 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                       {searchSuggestions.map((suggestion, index) => (
                         <li
                           key={index}
-                          className="px-4 py-2 text-gray-800 cursor-pointer hover:bg-gray-100"
+                          className="px-4 py-2 text-foreground cursor-pointer hover:bg-accent"
                           onMouseDown={() => handleSuggestionClick(suggestion)}
                         >
                           {suggestion}
@@ -475,46 +464,30 @@ const EmployeesPage = () => {
                   )}
                 </div>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
                 <button
                   onClick={toggleNotificationPanel}
-                  className="shrink-0 p-1 text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="relative p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors"
                 >
-                  <span className="sr-only">View notifications</span>
-                  {notifications && notifications.length > 0 ? (
-                    <BellDot className="h-6 w-6 text-green-500" />
-                  ) : (
-                    <BellIcon className="h-6 w-6 text-gray-400" />
+                  <Bell size={22} />
+                  {notifications?.length > 0 && (
+                    <span className="absolute top-1.5 right-2 h-2.5 w-2.5 bg-rose-500 rounded-full ring-2 ring-card animate-pulse"></span>
                   )}
                 </button>
-                <div className="ml-3 relative">
-                  <div>
-                    <button className="h-10 w-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 p-0.5 shadow-md hover:shadow-lg transition-shadow">
-                      <div className="h-full w-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-                        {user.profileImage ? (
-                          <ProfileImage src={user.profileImage} />
-                        ) : (
-                          <User className="text-blue-600" size={20} />
-                        )}
-                      </div>
-                    </button>
-                  </div>
-                </div>
               </div>
-            </div>
-          </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-4 sm:mb-0">
+            <h1 className="text-2xl font-semibold text-foreground mb-4 sm:mb-0">
               Employee Directory
             </h1>
             <div className="flex flex-wrap space-x-2">
-              <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              <button className="inline-flex items-center px-3 py-2 border border-border shadow-sm text-sm leading-4 font-medium rounded-lg text-foreground bg-card hover:bg-accent transition-colors">
                 <DownloadIcon className="h-4 w-4 mr-2" />
                 Export
               </button>
-              <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              <button className="inline-flex items-center px-3 py-2 border border-border shadow-sm text-sm leading-4 font-medium rounded-lg text-foreground bg-card hover:bg-accent transition-colors">
                 <UploadIcon className="h-4 w-4 mr-2" />
                 Import
               </button>
@@ -524,31 +497,29 @@ const EmployeesPage = () => {
                   onOpenChange={setIsCreateDialogOpen}
                 >
                   <DialogTrigger asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95">
                       <Plus className="h-5 w-5 mr-2" /> Add Employee
                     </Button>
                   </DialogTrigger>
 
-                  {/* Note: Added [&>button]:hidden to hide the default Shadcn X button since we adding our own */}
-                  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-2xl border-slate-200 shadow-2xl bg-white [&>button]:hidden">
-                    {/* Header - Now Flexbox with Manual Close Button */}
-                    <DialogHeader className="p-6 border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm sticky top-0 z-50 flex flex-row items-start justify-between">
+                  <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-2xl border-border shadow-2xl bg-card [&>button]:hidden">
+                    <DialogHeader className="p-6 border-b border-border bg-muted/80 backdrop-blur-sm sticky top-0 z-50 flex flex-row items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                        <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
                           <UserPlus size={20} />
                         </div>
                         <div className="text-left">
-                          <DialogTitle className="text-xl font-bold text-slate-900">
+                          <DialogTitle className="text-xl font-bold text-foreground">
                             Create New Employee
                           </DialogTitle>
-                          <DialogDescription className="text-slate-500 text-sm mt-0.5">
+                          <DialogDescription className="text-muted-foreground text-sm mt-0.5">
                             Enter the details to onboard a new team member.
                           </DialogDescription>
                         </div>
                       </div>
                       <button
                         onClick={() => setIsCreateDialogOpen(false)}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors -mr-2 -mt-2"
+                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors -mr-2 -mt-2"
                       >
                         <X size={20} />
                       </button>
@@ -645,7 +616,7 @@ const EmployeesPage = () => {
                       {/* Role Section */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <InputGroup label="Department">
-                          <div className="[&>select]:w-full [&>select]:px-3 [&>select]:py-2.5 [&>select]:bg-slate-50 [&>select]:border [&>select]:border-slate-200 [&>select]:rounded-xl [&>select]:text-sm [&>select]:focus:outline-none [&>select]:focus:ring-2 [&>select]:focus:ring-blue-500/20">
+                          <div className="[&>select]:w-full [&>select]:px-3 [&>select]:py-2.5 [&>select]:bg-background [&>select]:border [&>select]:border-border [&>select]:rounded-xl [&>select]:text-sm [&>select]:focus:outline-none [&>select]:focus:ring-2 [&>select]:focus:ring-primary/20">
                             {/* Pass props to your DeptOption component */}
                             <DeptOption
                               selectedDept={selectedDept}
@@ -675,15 +646,15 @@ const EmployeesPage = () => {
                           className={inputClass}
                           required
                         />
-                        <p className="text-[10px] text-slate-400 mt-1">
+                        <p className="text-[10px] text-muted-foreground mt-1">
                           Predefined roles from your organization settings.
                           Defines their permissions in the system.
                         </p>
                       </InputGroup>
 
                       {/* Location Section */}
-                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
+                      <div className="p-4 bg-muted rounded-xl border border-border">
+                        <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
                           Location Details
                         </h4>
                         <div className="grid grid-cols-3 gap-3">
@@ -693,7 +664,7 @@ const EmployeesPage = () => {
                             value={formData.city}
                             onChange={handleChange}
                             placeholder="City"
-                            className={`bg-white ${inputClass}`}
+                            className={`bg-card ${inputClass}`}
                           />
                           <input
                             type="text"
@@ -701,7 +672,7 @@ const EmployeesPage = () => {
                             value={formData.state}
                             onChange={handleChange}
                             placeholder="State"
-                            className={`bg-white ${inputClass}`}
+                            className={`bg-card ${inputClass}`}
                           />
                           <input
                             type="text"
@@ -709,14 +680,14 @@ const EmployeesPage = () => {
                             value={formData.country}
                             onChange={handleChange}
                             placeholder="Country"
-                            className={`bg-white ${inputClass}`}
+                            className={`bg-card ${inputClass}`}
                           />
                         </div>
                       </div>
 
                       {/* Bio */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                           Bio (Optional)
                         </label>
                         <textarea
@@ -729,19 +700,19 @@ const EmployeesPage = () => {
                       </div>
 
                       {/* Footer */}
-                      <div className="pt-2 border-t border-slate-100 flex justify-end gap-3">
+                      <div className="pt-2 border-t border-border flex justify-end gap-3">
                         <Button
                           type="button"
                           variant="ghost"
                           onClick={() => setIsCreateDialogOpen(false)}
-                          className="text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                          className="text-muted-foreground hover:text-foreground hover:bg-accent"
                         >
                           Cancel
                         </Button>
                         <Button
                           type="submit"
                           disabled={createLoading}
-                          className="bg-blue-600 hover:bg-blue-700 text-white min-w-[140px]"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[140px]"
                         >
                           {createLoading ? (
                             <>
@@ -771,25 +742,25 @@ const EmployeesPage = () => {
             </div>
             <div className="lg:col-span-2">
               <div className="mb-4 flex justify-between items-center">
-                <div className="flex items-center space-x-0 rounded-md shadow-sm border border-gray-300">
+                <div className="flex items-center p-1 bg-secondary rounded-lg">
                   <button
                     onClick={() => setView("grid")}
-                    className={`inline-flex items-center px-3 py-1.5 border-r border-gray-300 text-sm font-medium ${
+                    className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
                       view === "grid"
-                        ? "text-blue-600 bg-blue-50"
-                        : "text-gray-700 bg-white hover:bg-gray-50"
-                    } rounded-l-md`}
+                        ? "text-primary bg-card shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
                   >
                     <GridIcon className="h-5 w-5 mr-1" />
                     Grid
                   </button>
                   <button
                     onClick={() => setView("list")}
-                    className={`inline-flex items-center px-3 py-1.5 text-sm font-medium ${
+                    className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
                       view === "list"
-                        ? "text-blue-600 bg-blue-50"
-                        : "text-gray-700 bg-white hover:bg-gray-50"
-                    } rounded-r-md`}
+                        ? "text-primary bg-card shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
                   >
                     <ListIcon className="h-5 w-5 mr-1" />
                     List
@@ -798,36 +769,36 @@ const EmployeesPage = () => {
                 <div className="flex items-center space-x-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                      <button className="inline-flex items-center px-3 py-1.5 border border-border text-sm font-medium rounded-lg text-foreground bg-card hover:bg-accent transition-colors">
                         <FilterIcon className="h-4 w-4 mr-1" />
                         {statusFilter === "All" ? "Filter" : statusFilter}
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="w-56 bg-white shadow-lg rounded-md p-1"
+                      className="w-56 bg-card shadow-lg rounded-lg p-1 border border-border"
                     >
                       <DropdownMenuGroup>
                         <DropdownMenuItem
                           onClick={() => handleStatusFilter("All")}
-                          className="cursor-pointer hover:bg-gray-100 p-2 rounded-md"
+                          className="cursor-pointer hover:bg-accent p-2 rounded-md"
                         >
                           All Employees
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="cursor-pointer hover:bg-gray-100 p-2 rounded-md"
+                          className="cursor-pointer hover:bg-accent p-2 rounded-md"
                           onClick={() => handleStatusFilter("Active")}
                         >
                           Active
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="cursor-pointer hover:bg-gray-100 p-2 rounded-md"
+                          className="cursor-pointer hover:bg-accent p-2 rounded-md"
                           onClick={() => handleStatusFilter("Inactive")}
                         >
                           Inactive
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="cursor-pointer hover:bg-gray-100 p-2 rounded-md"
+                          className="cursor-pointer hover:bg-accent p-2 rounded-md"
                           onClick={() => handleStatusFilter("On Leave")}
                         >
                           On Leave
@@ -838,7 +809,7 @@ const EmployeesPage = () => {
 
                   <button
                     onClick={getAllEmployee}
-                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    className="inline-flex items-center px-3 py-1.5 border border-border text-sm font-medium rounded-lg text-foreground bg-card hover:bg-accent transition-colors"
                     disabled={loading}
                   >
                     <RefreshCcw

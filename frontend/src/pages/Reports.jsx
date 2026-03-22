@@ -8,6 +8,9 @@ import {
   FilterIcon,
   BellDot,
   User,
+  Menu,
+  Bell,
+  BarChart3,
 } from 'lucide-react'
 import {
   BarChart,
@@ -29,6 +32,7 @@ import { useNotifications } from '@/context/NotificationContext'
 import NotificationPanel from '@/components/Dashboard/NotificationPanel'
 import ProfileImage from '@/components/ui/ProfileImage'
 import { useAuth } from '@/context/AuthContext'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 const Reports = () => {
   const { user } = useAuth();
 
@@ -133,85 +137,38 @@ const Reports = () => {
     },
   ]
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background font-sans text-foreground">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm z-10">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex">
-                <button
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden"
-                >
-                  <svg
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h7"
-                    />
-                  </svg>
-                </button>
-                <div className="ml-4 flex items-center lg:ml-0">
-                  <div className="relative w-64">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <SearchIcon className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      placeholder="Search reports..."
-                      type="search"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <button
-                  onClick={toggleNotificationPanel}
-                  className="shrink-0 p-1 text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <span className="sr-only">View notifications</span>
-                  {notifications && notifications.length > 0 ? (
-                    <BellDot className="text-green-500" />
-                  ) : (
-                    <BellIcon className="text-gray-400" />
-                  )}
-                </button>
-                <div className="ml-3 relative">
-                  <div>
-                    <button className="h-10 w-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 p-0.5 shadow-md hover:shadow-lg transition-shadow">
-                <div className="h-full w-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-                  {user.profileImage ? (
-                    <ProfileImage src={user.profileImage}/>
-                  ) : (
-                    <User className="text-blue-600" size={20} />
-                  )}
-                </div>
+        <header className="bg-card border-b border-border h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20">
+           <div className="flex items-center gap-4">
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-muted-foreground hover:bg-accent rounded-lg">
+                <Menu size={24} />
               </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+              <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+                 <BarChart3 className="text-primary" size={24} /> Reports
+              </h1>
+           </div>
+           <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <button onClick={toggleNotificationPanel} className="relative p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors">
+                 <Bell size={22} />
+                 {notifications?.length > 0 && <span className="absolute top-1.5 right-2 h-2.5 w-2.5 bg-rose-500 rounded-full ring-2 ring-card animate-pulse"></span>}
+              </button>
+           </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
           <div className="mb-6 flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-foreground">
               Reports & Analytics
             </h1>
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <CalendarIcon className="h-5 w-5 text-gray-400" />
+                <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                 <select
                   value={selectedPeriod}
                   onChange={(e) => setSelectedPeriod(e.target.value)}
-                  className="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  className="text-sm border-border rounded-lg bg-card text-foreground shadow-sm focus:border-primary focus:ring focus:ring-primary/20 focus:ring-opacity-50"
                 >
                   <option value="week">Last Week</option>
                   <option value="month">Last Month</option>
@@ -219,11 +176,11 @@ const Reports = () => {
                   <option value="year">Last Year</option>
                 </select>
               </div>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              <button className="inline-flex items-center px-4 py-2 border border-border shadow-sm text-sm font-medium rounded-lg text-foreground bg-card hover:bg-accent transition-colors">
                 <FilterIcon className="h-4 w-4 mr-2" />
                 Filter
               </button>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">
                 <DownloadIcon className="h-4 w-4 mr-2" />
                 Export Report
               </button>
@@ -231,10 +188,10 @@ const Reports = () => {
           </div>
           {/* Summary Stats */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="shrink-0 bg-blue-100 rounded-md p-3">
+                  <div className="shrink-0 bg-blue-500/10 rounded-md p-3">
                     <svg
                       className="h-6 w-6 text-blue-600"
                       fill="none"
@@ -251,25 +208,25 @@ const Reports = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
                         Tasks Completed
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">348</dd>
+                      <dd className="text-lg font-medium text-foreground">348</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
+              <div className="bg-muted px-5 py-3">
                 <div className="text-sm">
                   <span className="font-medium text-green-600">+12%</span>
-                  <span className="text-gray-500 ml-2">from last period</span>
+                  <span className="text-muted-foreground ml-2">from last period</span>
                 </div>
               </div>
             </div>
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="shrink-0 bg-green-100 rounded-md p-3">
+                  <div className="shrink-0 bg-green-500/10 rounded-md p-3">
                     <svg
                       className="h-6 w-6 text-green-600"
                       fill="none"
@@ -286,25 +243,25 @@ const Reports = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
                         Active Employees
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">128</dd>
+                      <dd className="text-lg font-medium text-foreground">128</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
+              <div className="bg-muted px-5 py-3">
                 <div className="text-sm">
                   <span className="font-medium text-green-600">+8%</span>
-                  <span className="text-gray-500 ml-2">from last period</span>
+                  <span className="text-muted-foreground ml-2">from last period</span>
                 </div>
               </div>
             </div>
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="shrink-0 bg-yellow-100 rounded-md p-3">
+                  <div className="shrink-0 bg-yellow-500/10 rounded-md p-3">
                     <svg
                       className="h-6 w-6 text-yellow-600"
                       fill="none"
@@ -321,25 +278,25 @@ const Reports = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
                         Meetings Held
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">87</dd>
+                      <dd className="text-lg font-medium text-foreground">87</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
+              <div className="bg-muted px-5 py-3">
                 <div className="text-sm">
                   <span className="font-medium text-green-600">+5%</span>
-                  <span className="text-gray-500 ml-2">from last period</span>
+                  <span className="text-muted-foreground ml-2">from last period</span>
                 </div>
               </div>
             </div>
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg border border-border">
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="shrink-0 bg-purple-100 rounded-md p-3">
+                  <div className="shrink-0 bg-purple-500/10 rounded-md p-3">
                     <svg
                       className="h-6 w-6 text-purple-600"
                       fill="none"
@@ -356,18 +313,18 @@ const Reports = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
                         Departments
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">6</dd>
+                      <dd className="text-lg font-medium text-foreground">6</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
+              <div className="bg-muted px-5 py-3">
                 <div className="text-sm">
                   <span className="font-medium text-gray-600">No change</span>
-                  <span className="text-gray-500 ml-2">from last period</span>
+                  <span className="text-muted-foreground ml-2">from last period</span>
                 </div>
               </div>
             </div>
@@ -375,9 +332,9 @@ const Reports = () => {
           {/* Charts */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 mb-8">
             {/* Task Completion Trend */}
-            <div className="bg-white shadow rounded-lg overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">
+            <div className="bg-card shadow rounded-lg overflow-hidden border border-border">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-medium text-foreground">
                   Task Completion Trend
                 </h2>
               </div>
@@ -403,9 +360,9 @@ const Reports = () => {
               </div>
             </div>
             {/* Department Performance */}
-            <div className="bg-white shadow rounded-lg overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">
+            <div className="bg-card shadow rounded-lg overflow-hidden border border-border">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-medium text-foreground">
                   Department Performance
                 </h2>
               </div>
@@ -431,9 +388,9 @@ const Reports = () => {
           {/* Department Distribution and Recent Activity */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="lg:col-span-1">
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-medium text-gray-900">
+              <div className="bg-card shadow rounded-lg overflow-hidden border border-border">
+                <div className="px-6 py-4 border-b border-border">
+                  <h2 className="text-lg font-medium text-foreground">
                     Employee Distribution
                   </h2>
                 </div>
@@ -465,13 +422,13 @@ const Reports = () => {
               </div>
             </div>
             <div className="lg:col-span-2">
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-medium text-gray-900">
+              <div className="bg-card shadow rounded-lg overflow-hidden border border-border">
+                <div className="px-6 py-4 border-b border-border">
+                  <h2 className="text-lg font-medium text-foreground">
                     Top Performers
                   </h2>
                 </div>
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-border">
                   {[
                     {
                       name: 'Jane Cooper',
@@ -520,19 +477,19 @@ const Reports = () => {
                           className="h-10 w-10 rounded-full"
                         />
                         <div className="ml-4">
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-foreground">
                             {performer.name}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             {performer.department}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {performer.tasks} tasks
                         </p>
-                        <p className="text-sm text-gray-500">completed</p>
+                        <p className="text-sm text-muted-foreground">completed</p>
                       </div>
                     </div>
                   ))}

@@ -116,7 +116,7 @@ const StatCard = ({ title, value, icon, colorClass, link, trend }) => {
 
   return (
     <Link to={`/${link}`} className="block group">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 duration-300 h-full">
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 duration-300 h-full">
         <div className="flex items-start justify-between mb-4">
           <div className={`p-3 rounded-xl ${selectedColor} transition-colors`}>
             {icon}
@@ -129,8 +129,8 @@ const StatCard = ({ title, value, icon, colorClass, link, trend }) => {
           )}
         </div>
         <div>
-           <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
-           <p className="text-3xl font-bold text-slate-900 tracking-tight">{value || 0}</p>
+           <h3 className="text-muted-foreground text-sm font-medium mb-1">{title}</h3>
+           <p className="text-3xl font-bold text-foreground tracking-tight">{value || 0}</p>
         </div>
       </div>
     </Link>

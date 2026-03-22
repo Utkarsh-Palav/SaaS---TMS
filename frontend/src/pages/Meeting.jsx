@@ -31,6 +31,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import axios from "axios";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const Meeting = () => {
   const { user } = useAuth();
@@ -164,8 +165,8 @@ const Meeting = () => {
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200 ${
         active
-          ? "bg-white text-blue-600 shadow-sm ring-1 ring-slate-200"
-          : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
+          ? "bg-card text-primary shadow-sm ring-1 ring-border"
+          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
       } first:rounded-l-lg last:rounded-r-lg`}
     >
       <Icon size={16} /> {label}
@@ -173,39 +174,40 @@ const Meeting = () => {
   );
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="flex h-screen bg-background font-sans text-foreground">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-20">
+        <header className="bg-card border-b border-border h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-20">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+              className="lg:hidden p-2 text-muted-foreground hover:bg-accent rounded-lg"
             >
               <Menu size={24} />
             </button>
             <div className="relative hidden sm:block w-72">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 size={18}
               />
               <input
                 type="text"
                 placeholder="Search meetings..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all placeholder:text-slate-400"
+                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground outline-none"
               />
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             <button
               onClick={toggleNotificationPanel}
-              className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
+              className="relative p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors"
             >
               <Bell size={22} />
               {notifications?.length > 0 && (
-                <span className="absolute top-2 right-2.5 h-2 w-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
+                <span className="absolute top-2 right-2.5 h-2 w-2 bg-rose-500 rounded-full ring-2 ring-card"></span>
               )}
             </button>
             <div className="h-9 w-9 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-medium shadow-sm">
@@ -220,16 +222,16 @@ const Meeting = () => {
             {/* Page Title & Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-2xl font-bold text-foreground tracking-tight">
                   Meetings
                 </h1>
-                <p className="text-slate-500 text-sm mt-1">
+                <p className="text-muted-foreground text-sm mt-1">
                   Manage your schedule and team collaborations.
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex p-1 bg-slate-100 rounded-xl">
+                <div className="flex p-1 bg-secondary rounded-xl">
                   <ToggleButton
                     active={view === "calendar"}
                     onClick={() => setView("calendar")}
@@ -247,16 +249,16 @@ const Meeting = () => {
                 {isBossOrManager && (
                   <Dialog open={isOpen} onOpenChange={setIsOpen}>
                     <DialogTrigger asChild>
-                      <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 rounded-xl px-5 h-11">
+                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 rounded-xl px-5 h-11">
                         <Plus size={18} className="mr-2" /> Schedule
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto p-0 gap-0 bg-white rounded-2xl">
-                      <DialogHeader className="p-6 border-b border-slate-100 bg-slate-50/50">
-                        <DialogTitle className="text-xl font-bold text-slate-900">
+                    <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto p-0 gap-0 bg-card rounded-2xl border-border">
+                      <DialogHeader className="p-6 border-b border-border bg-muted/50">
+                        <DialogTitle className="text-xl font-bold text-foreground">
                           Schedule New Meeting
                         </DialogTitle>
-                        <DialogDescription className="text-slate-500">
+                        <DialogDescription className="text-muted-foreground">
                           Organize a session with your team.
                         </DialogDescription>
                       </DialogHeader>
@@ -266,14 +268,14 @@ const Meeting = () => {
                         className="p-6 space-y-5"
                       >
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-500 uppercase">
+                          <label className="text-xs font-bold text-muted-foreground uppercase">
                             Title
                           </label>
                           <input
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
-                            className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
                             placeholder="e.g. Q3 Roadmap Review"
                             required
                           />
@@ -281,7 +283,7 @@ const Meeting = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-500 uppercase">
+                            <label className="text-xs font-bold text-muted-foreground uppercase">
                               Start Time
                             </label>
                             <input
@@ -289,13 +291,13 @@ const Meeting = () => {
                               name="startTime"
                               value={formData.startTime}
                               onChange={handleChange}
-                              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                              className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
                               required
                               min={new Date().toISOString().slice(0, 16)}
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-500 uppercase">
+                            <label className="text-xs font-bold text-muted-foreground uppercase">
                               End Time
                             </label>
                             <input
@@ -303,7 +305,7 @@ const Meeting = () => {
                               name="endTime"
                               value={formData.endTime}
                               onChange={handleChange}
-                              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                              className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
                               required
                               min={formData.startTime}
                             />
@@ -311,7 +313,7 @@ const Meeting = () => {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-500 uppercase">
+                          <label className="text-xs font-bold text-muted-foreground uppercase">
                             Meeting Type
                           </label>
                           <div className="grid grid-cols-3 gap-3">
@@ -327,8 +329,8 @@ const Meeting = () => {
                                 }
                                 className={`py-2.5 px-3 text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition-all ${
                                   formData.meetingType === type
-                                    ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600"
-                                    : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                                    ? "border-primary bg-primary/10 text-primary ring-1 ring-primary"
+                                    : "border-border text-muted-foreground hover:bg-accent"
                                 }`}
                               >
                                 {type === "Virtual" && <Video size={14} />}{" "}
@@ -343,14 +345,14 @@ const Meeting = () => {
                         {(formData.meetingType === "In-Person" ||
                           formData.meetingType === "Hybrid") && (
                           <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase">
+                            <label className="text-xs font-bold text-muted-foreground uppercase">
                               Select Room
                             </label>
                             <select
                               name="roomId"
                               value={formData.roomId}
                               onChange={handleChange}
-                              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                              className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
                               required
                             >
                               <option value="">-- Choose a Room --</option>
@@ -366,26 +368,26 @@ const Meeting = () => {
                         {(formData.meetingType === "Virtual" ||
                           formData.meetingType === "Hybrid") && (
                           <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase">
+                            <label className="text-xs font-bold text-muted-foreground uppercase">
                               Link
                             </label>
                             <input
                               name="virtualLink"
                               value={formData.virtualLink}
                               onChange={handleChange}
-                              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                              className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
                               placeholder="https://..."
                             />
                           </div>
                         )}
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-500 uppercase">
+                          <label className="text-xs font-bold text-muted-foreground uppercase">
                             Participants ({formData.participants.length})
                           </label>
-                          <div className="border border-slate-200 rounded-lg max-h-32 overflow-y-auto bg-slate-50 p-1">
+                          <div className="border border-border rounded-lg max-h-32 overflow-y-auto bg-muted p-1">
                             {loadingData ? (
-                              <div className="text-xs text-slate-400 p-2">
+                              <div className="text-xs text-muted-foreground p-2">
                                 Loading...
                               </div>
                             ) : (
@@ -395,13 +397,13 @@ const Meeting = () => {
                                   onClick={() =>
                                     handleParticipantToggle(emp._id)
                                   }
-                                  className="flex items-center gap-2 p-2 hover:bg-white hover:shadow-sm rounded-md cursor-pointer transition-all"
+                                   className="flex items-center gap-2 p-2 hover:bg-accent hover:shadow-sm rounded-md cursor-pointer transition-all"
                                 >
                                   <div
                                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                                       formData.participants.includes(emp._id)
-                                        ? "bg-blue-600 border-blue-600"
-                                        : "bg-white border-slate-300"
+                                        ? "bg-primary border-primary"
+                                        : "bg-card border-border"
                                     }`}
                                   >
                                     {formData.participants.includes(
@@ -410,10 +412,10 @@ const Meeting = () => {
                                       <Plus size={10} className="text-white" />
                                     )}
                                   </div>
-                                  <span className="text-sm text-slate-700 font-medium">
+                                  <span className="text-sm text-foreground font-medium">
                                     {emp.firstName} {emp.lastName}
                                   </span>
-                                  <span className="text-xs text-slate-400 ml-auto">
+                                  <span className="text-xs text-muted-foreground ml-auto">
                                     {emp.jobTitle}
                                   </span>
                                 </div>
@@ -423,7 +425,7 @@ const Meeting = () => {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-500 uppercase">
+                          <label className="text-xs font-bold text-muted-foreground uppercase">
                             Agenda
                           </label>
                           <textarea
@@ -431,7 +433,7 @@ const Meeting = () => {
                             value={formData.description}
                             onChange={handleChange}
                             rows={3}
-                            className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
+                            className="w-full px-3 py-2.5 bg-muted border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none text-foreground"
                             placeholder="Brief description..."
                           />
                         </div>
@@ -441,14 +443,14 @@ const Meeting = () => {
                             type="button"
                             variant="ghost"
                             onClick={() => setIsOpen(false)}
-                            className="text-slate-500"
+                            className="text-muted-foreground"
                           >
                             Cancel
                           </Button>
                           <Button
                             type="submit"
                             disabled={creatingMeeting}
-                            className="bg-blue-600 hover:bg-blue-700 text-white min-w-[120px]"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[120px]"
                           >
                             {creatingMeeting ? (
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -468,13 +470,13 @@ const Meeting = () => {
               <div className="lg:col-span-2 space-y-8">
                 {view === "calendar" ? (
                   <>
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                       <MeetingCalendar meetingsData={meetings} />
                     </div>
                   </>
                 ) : (
                   /* List View - Full Height */
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                     <UpcomingMeetings listView={true} allMeetings={meetings} />
                   </div>
                 )}
