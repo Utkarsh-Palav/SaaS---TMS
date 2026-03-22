@@ -86,20 +86,20 @@ const ChatWindow = ({ chat, onBack }) => {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full bg-white md:rounded-tl-2xl overflow-hidden">
+    <div className="flex flex-col h-full bg-card md:rounded-tl-2xl overflow-hidden">
       {/* --- Header --- */}
-      <div className="h-16 px-6 border-b border-slate-100 flex items-center justify-between bg-white shadow-sm z-10">
+      <div className="h-16 px-6 border-b border-border flex items-center justify-between bg-card shadow-sm z-10">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full"
+            className="md:hidden p-2 -ml-2 text-muted-foreground hover:bg-accent rounded-full"
           >
             <ArrowLeft size={20} />
           </button>
 
           <div className="relative">
             {otherUser.profileImage ? (
-              <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
                 <img
                   src={otherUser.profileImage}
                   alt={otherUser.firstName}
@@ -107,7 +107,7 @@ const ChatWindow = ({ chat, onBack }) => {
                 />
               </div>
             ) : (
-              <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
                 {otherUser?.firstName?.charAt(0).toUpperCase()}
               </div>
             )}
@@ -116,10 +116,10 @@ const ChatWindow = ({ chat, onBack }) => {
           </div>
 
           <div>
-            <h3 className="font-bold text-slate-900">
+            <h3 className="font-bold text-foreground">
               {otherUser?.firstName} {otherUser?.lastName}
             </h3>
-            <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
+            <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{" "}
               Active now
             </p>
@@ -140,14 +140,14 @@ const ChatWindow = ({ chat, onBack }) => {
       </div>
 
       {/* --- Messages Area --- */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-muted/20 space-y-6">
         {loading ? (
           <div className="h-full flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
           <>
-            <div className="text-center text-xs text-slate-400 my-4 font-medium uppercase tracking-wider">
+            <div className="text-center text-xs text-muted-foreground my-4 font-medium uppercase tracking-wider">
               Start of conversation
             </div>
 
@@ -174,8 +174,8 @@ const ChatWindow = ({ chat, onBack }) => {
                         px-4 py-2.5 text-sm shadow-sm relative group
                         ${
                           isMe
-                            ? "bg-blue-600 text-white rounded-2xl rounded-tr-sm"
-                            : "bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm"
+                            ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm"
+                            : "bg-card border border-border text-foreground rounded-2xl rounded-tl-sm"
                         }
                       `}
                     >
@@ -187,8 +187,8 @@ const ChatWindow = ({ chat, onBack }) => {
                         absolute bottom-0 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap mb-1
                         ${
                           isMe
-                            ? "right-full mr-2 text-slate-400"
-                            : "left-full ml-2 text-slate-400"
+                            ? "right-full mr-2 text-muted-foreground"
+                            : "left-full ml-2 text-muted-foreground"
                         }
                       `}
                       >
@@ -201,7 +201,7 @@ const ChatWindow = ({ chat, onBack }) => {
 
                     {/* Status Icon (Read receipts logic goes here later) */}
                     {isMe && !isSequence && (
-                      <span className="text-[10px] text-slate-400 mt-1 mr-1 flex items-center gap-1">
+                      <span className="text-[10px] text-muted-foreground mt-1 mr-1 flex items-center gap-1">
                         {new Date(msg.createdAt).toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -219,10 +219,10 @@ const ChatWindow = ({ chat, onBack }) => {
       </div>
 
       {/* --- Input Area --- */}
-      <div className="p-4 bg-white border-t border-slate-100">
+      <div className="p-4 bg-card border-t border-border">
         <form
           onSubmit={handleSendMessage}
-          className="flex items-end gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200 focus-within:border-blue-300 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all"
+          className="flex items-end gap-2 bg-muted/30 p-2 rounded-2xl border border-border focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all"
         >
           <div className="flex gap-1 pb-1 pl-1">
             <InputButton icon={<Paperclip size={20} />} />
@@ -230,7 +230,7 @@ const ChatWindow = ({ chat, onBack }) => {
           </div>
 
           <textarea
-            className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-800 placeholder-slate-400 resize-none py-2 px-1 max-h-32 min-h-11"
+            className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-foreground placeholder:text-muted-foreground resize-none py-2 px-1 max-h-32 min-h-11"
             placeholder="Type a message..."
             rows={1}
             value={newMessage}
@@ -250,8 +250,8 @@ const ChatWindow = ({ chat, onBack }) => {
               p-2.5 rounded-xl transition-all duration-200 flex items-center justify-center
               ${
                 newMessage.trim()
-                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 hover:scale-105"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:scale-105"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
               }
             `}
           >
@@ -268,7 +268,7 @@ const ChatWindow = ({ chat, onBack }) => {
 const IconButton = ({ icon, onClick }) => (
   <button
     onClick={onClick}
-    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
+    className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full transition-all"
   >
     {icon}
   </button>
@@ -277,7 +277,7 @@ const IconButton = ({ icon, onClick }) => (
 const InputButton = ({ icon }) => (
   <button
     type="button"
-    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 rounded-full transition-colors"
+    className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors"
   >
     {icon}
   </button>

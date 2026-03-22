@@ -13,17 +13,17 @@ const ChatSidebar = ({ employeeList, onSelectChat, activeChatId }) => {
   console.log(employeeList);
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-card">
       {/* Search Header */}
-      <div className="p-4 border-b border-slate-100">
+      <div className="p-4 border-b border-border">
         <div className="relative">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             size={18}
           />
           <input
             type="text"
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             placeholder="Search colleagues..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -33,7 +33,7 @@ const ChatSidebar = ({ employeeList, onSelectChat, activeChatId }) => {
 
       {/* List */}
       <div className="flex-1 overflow-y-auto">
-        <h3 className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+        <h3 className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
           Direct Messages ({filteredEmployees.length})
         </h3>
 
@@ -48,8 +48,8 @@ const ChatSidebar = ({ employeeList, onSelectChat, activeChatId }) => {
                     w-full p-3 flex items-center gap-3 rounded-xl transition-all duration-200 group
                     ${
                       isActive
-                        ? "bg-blue-50 border border-blue-100 shadow-sm"
-                        : "hover:bg-slate-50 border border-transparent"
+                        ? "bg-primary/10 border border-primary/20 shadow-sm"
+                        : "hover:bg-accent border border-transparent"
                     }
                   `}
                   onClick={() => onSelectChat(emp)}
@@ -96,14 +96,14 @@ const ChatSidebar = ({ employeeList, onSelectChat, activeChatId }) => {
                   <div className="flex-1 text-left min-w-0">
                     <p
                       className={`text-sm font-semibold truncate ${
-                        isActive ? "text-blue-900" : "text-slate-900"
+                        isActive ? "text-foreground" : "text-foreground/80"
                       }`}
                     >
                       {emp.firstName} {emp.lastName}
                     </p>
                     <p
                       className={`text-xs truncate ${
-                        isActive ? "text-blue-600" : "text-slate-500"
+                        isActive ? "text-primary" : "text-muted-foreground"
                       }`}
                     >
                       {emp.role?.name || "Employee"}
@@ -112,7 +112,7 @@ const ChatSidebar = ({ employeeList, onSelectChat, activeChatId }) => {
 
                   {/* Chevron (Only on hover/active) */}
                   {isActive && (
-                    <ChevronRight size={16} className="text-blue-500" />
+                    <ChevronRight size={16} className="text-primary" />
                   )}
                 </button>
               </li>
