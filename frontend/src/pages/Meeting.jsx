@@ -59,6 +59,7 @@ const Meeting = () => {
     meetingType: "Virtual",
     roomId: "",
     virtualLink: "",
+    generateMeetLink: false,
     startTime: "",
     endTime: "",
   });
@@ -131,6 +132,7 @@ const Meeting = () => {
         meetingType: "Virtual",
         roomId: "",
         virtualLink: "",
+        generateMeetLink: false,
         startTime: "",
         endTime: "",
       });
@@ -369,15 +371,51 @@ const Meeting = () => {
                           formData.meetingType === "Hybrid") && (
                           <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
                             <label className="text-xs font-bold text-muted-foreground uppercase">
-                              Link
+                              Virtual Link
                             </label>
-                            <input
-                              name="virtualLink"
-                              value={formData.virtualLink}
-                              onChange={handleChange}
-                              className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
-                              placeholder="https://..."
-                            />
+
+                            {!!user?.googleTokens && (
+                              <div className="flex bg-muted rounded-lg p-1.5 gap-1 mb-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setFormData({ ...formData, generateMeetLink: true, virtualLink: "" })}
+                                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${
+                                    formData.generateMeetLink
+                                      ? "bg-background text-primary shadow-sm ring-1 ring-border"
+                                      : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                                  }`}
+                                >
+                                  <Video size={14} /> Auto-Generate
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setFormData({ ...formData, generateMeetLink: false })}
+                                  className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${
+                                    !formData.generateMeetLink
+                                      ? "bg-background text-primary shadow-sm ring-1 ring-border"
+                                      : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                                  }`}
+                                >
+                                  <Plus size={14} /> Custom Link
+                                </button>
+                              </div>
+                            )}
+
+                            {!formData.generateMeetLink && (
+                              <input
+                                name="virtualLink"
+                                value={formData.virtualLink}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
+                                placeholder="https://..."
+                              />
+                            )}
+
+                            {formData.generateMeetLink && (
+                               <div className="w-full px-3 py-2.5 bg-accent/50 border border-border border-dashed rounded-lg text-sm text-muted-foreground flex items-center justify-center gap-2">
+                                 <Video size={16} className="text-primary"/> Google Meet Link will be generated automatically.
+                               </div>
+                            )}
                           </div>
                         )}
 

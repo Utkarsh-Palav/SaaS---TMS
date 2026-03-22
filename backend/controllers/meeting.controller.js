@@ -1,6 +1,7 @@
 import Meeting from "../models/meeting.model.js";
 import Room from "../models/room.model.js";
 import { logRecentActivity } from "../utils/logRecentActivity.js";
+import { google } from "googleapis";
 
 const checkRoomConflict = async (
   roomId,
@@ -101,6 +102,48 @@ export const createMeeting = async (req, res) => {
 
     await newMeeting.save();
 
+    if (req.user.googleTokens) {
+      try {
+        const oauth2Client = new google.auth.OAuth2(
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_CLIENT_SECRET
+        );
+        oauth2Client.setCredentials(req.user.googleTokens);
+        const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+        const event = {
+          summary: title,
+          description: description,
+          start: { dateTime: new Date(startTime).toISOString() },
+          end: { dateTime: new Date(endTime).toISOString() }
+        };
+
+        if (meetingType === "Virtual" && req.body.generateMeetLink) {
+          event.conferenceData = {
+            createRequest: {
+              requestId: newMeeting._id.toString(),
+              conferenceSolutionKey: { type: "hangoutsMeet" }
+            }
+          };
+        }
+
+        const createdEvent = await calendar.events.insert({
+          calendarId: "primary",
+          conferenceDataVersion: 1,
+          resource: event,
+        });
+
+        newMeeting.googleEventId = createdEvent.data.id;
+        if (meetingType === "Virtual" && createdEvent.data.hangoutLink) {
+          newMeeting.virtualLink = createdEvent.data.hangoutLink;
+        }
+
+        await newMeeting.save();
+      } catch (err) {
+        console.error("Failed to sync new meeting to Google Calendar:", err);
+      }
+    }
+
     await logRecentActivity(req, "CREATE_MEETING", "Meeting", `Scheduled meeting: ${title}`, {
       meetingId: newMeeting._id,
     });
@@ -163,13 +206,64 @@ export const getMeetings = async (req, res) => {
         query.status = "Scheduled";
     }
 
-    const meetings = await Meeting.find(query)
+    const localMeetings = await Meeting.find(query)
       .populate("host", "firstName middleName lastName email profileImage")
       .populate("participants", "firstName middleName lastName email profileImage")
       .populate("roomId", "name capacity")
       .sort({ startTime: 1 });
 
-    res.status(200).json(meetings);
+    let googleEvents = [];
+    if (req.user.googleTokens) {
+      try {
+        const oauth2Client = new google.auth.OAuth2(
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_CLIENT_SECRET
+        );
+        oauth2Client.setCredentials(req.user.googleTokens);
+
+        const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+        
+        let timeMin = new Date().toISOString();
+        let timeMax = undefined;
+        
+        if (date) {
+          const start = new Date(date); start.setHours(0,0,0,0);
+          const end = new Date(date); end.setHours(23,59,59,999);
+          timeMin = start.toISOString();
+          timeMax = end.toISOString();
+        } else if (startDate && endDate) {
+          timeMin = new Date(startDate).toISOString();
+          timeMax = new Date(endDate).toISOString();
+        }
+
+        const eventsRes = await calendar.events.list({
+          calendarId: 'primary',
+          timeMin: timeMin,
+          ...(timeMax && { timeMax }),
+          singleEvents: true,
+          orderBy: 'startTime',
+        });
+
+        googleEvents = eventsRes.data.items.map(event => ({
+           _id: "gcal-" + event.id,
+           title: event.summary || "Busy",
+           startTime: event.start.dateTime || event.start.date,
+           endTime: event.end.dateTime || event.end.date,
+           description: event.description || "Google Calendar Event",
+           meetingType: "Virtual",
+           virtualLink: event.htmlLink || "",
+           status: "Scheduled",
+           host: { firstName: "Google", lastName: "Calendar" },
+           isGoogleEvent: true,
+        }));
+      } catch (err) {
+        console.error("Error fetching Google Calendar events:", err);
+      }
+    }
+
+    const allMeetings = [...localMeetings, ...googleEvents].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+    res.status(200).json(allMeetings);
   } catch (error) {
     console.error("Error fetching meetings:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -225,6 +319,32 @@ export const updateMeeting = async (req, res) => {
       .populate("host", "firstName middleName lastName")
       .populate("roomId", "name");
 
+      if (req.user.googleTokens && updatedMeeting.googleEventId) {
+        try {
+          const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET
+          );
+          oauth2Client.setCredentials(req.user.googleTokens);
+          const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+          const event = {
+            summary: updatedMeeting.title,
+            description: updatedMeeting.description,
+            start: { dateTime: new Date(updatedMeeting.startTime).toISOString() },
+            end: { dateTime: new Date(updatedMeeting.endTime).toISOString() },
+          };
+
+          await calendar.events.update({
+            calendarId: "primary",
+            eventId: updatedMeeting.googleEventId,
+            resource: event,
+          });
+        } catch (err) {
+          console.error("Failed to sync meeting update to Google Calendar:", err);
+        }
+      }
+
       await logRecentActivity(req, "UPDATE_MEETING", "Meeting", `Updated meeting: ${updatedMeeting.title}`, {
         newMeeting: updatedMeeting,
         previousMeeting: existingMeeting,
@@ -254,6 +374,24 @@ export const cancelMeeting = async (req, res) => {
       return res.status(404).json({ message: "Meeting not found" });
     }
 
+    if (req.user.googleTokens && meeting.googleEventId) {
+      try {
+        const oauth2Client = new google.auth.OAuth2(
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_CLIENT_SECRET
+        );
+        oauth2Client.setCredentials(req.user.googleTokens);
+        const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+        await calendar.events.delete({
+           calendarId: "primary",
+           eventId: meeting.googleEventId
+        });
+      } catch (err) {
+        console.error("Failed to delete meeting from Google Calendar:", err);
+      }
+    }
+
     await logRecentActivity(req, "CANCEL_MEETING", "Meeting", `Cancelled meeting: ${meeting.title}`, {
       meetingId: meeting._id,
     });
@@ -276,6 +414,24 @@ export const deleteMeeting = async (req, res) => {
 
     if (!meeting) {
       return res.status(404).json({ message: "Meeting not found" });
+    }
+
+    if (req.user.googleTokens && meeting.googleEventId) {
+      try {
+        const oauth2Client = new google.auth.OAuth2(
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_CLIENT_SECRET
+        );
+        oauth2Client.setCredentials(req.user.googleTokens);
+        const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+        await calendar.events.delete({
+           calendarId: "primary",
+           eventId: meeting.googleEventId
+        });
+      } catch (err) {
+        console.error("Failed to delete meeting from Google Calendar:", err);
+      }
     }
 
     res.status(200).json({ message: "Meeting deleted permanently" });

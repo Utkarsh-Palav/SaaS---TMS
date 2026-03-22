@@ -71,6 +71,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
     },
     skills: [{ type: String, default: null }],
+    googleTokens: {
+      type: Object,
+      default: null,
+    },
     otp: {
       type: String,
       default: null,

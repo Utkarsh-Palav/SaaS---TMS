@@ -59,6 +59,10 @@ const MeetingSchema = new mongoose.Schema({
     enum: ["Scheduled", "Cancelled", "Completed"],
     default: "Scheduled",
   },
+  googleEventId: {
+    type: String,
+    default: null,
+  },
 });
 
 MeetingSchema.pre("validate", function (next) {

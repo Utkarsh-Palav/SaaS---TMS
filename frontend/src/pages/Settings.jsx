@@ -18,12 +18,41 @@ import NotificationPanel from "@/components/Dashboard/NotificationPanel";
 import ProfileImage from "@/components/ui/ProfileImage";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import axios from "axios";
+
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const { toggleNotificationPanel, notifications } = useNotifications();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState("integrations"); // Default set to integrations for testing
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const handleConnectGoogle = async () => {
+    try {
+      setIsConnecting(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/integrations/google/auth`, { withCredentials: true });
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (error) {
+      console.error("Error connecting Google Calendar:", error);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnectGoogle = async () => {
+    try {
+      setIsConnecting(true);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/integrations/google/disconnect`, { withCredentials: true });
+      window.location.reload(); // Quick refresh to update the token state natively
+    } catch (error) {
+      console.error("Error disconnecting Google Calendar:", error);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
   return (
     <div className="flex h-screen bg-background font-sans text-foreground">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
@@ -697,21 +726,27 @@ const Settings = () => {
                         {[
                           {
                             name: "Slack",
+                            id: "slack",
                             description: "Connect your Slack workspace",
-                            connected: true,
+                            connected: false,
                           },
                           {
                             name: "Google Calendar",
-                            description: "Sync your meetings and events",
-                            connected: true,
+                            id: "google",
+                            description: "Sync your meetings and events directly with our internal calendar",
+                            connected: !!user?.googleTokens,
+                            onConnect: handleConnectGoogle,
+                            onDisconnect: handleDisconnectGoogle
                           },
                           {
                             name: "GitHub",
+                            id: "github",
                             description: "Link your repositories",
                             connected: false,
                           },
                           {
                             name: "Zoom",
+                            id: "zoom",
                             description: "Enable video conferencing",
                             connected: false,
                           },
@@ -721,21 +756,29 @@ const Settings = () => {
                             className="bg-muted rounded-lg p-4 flex items-center justify-between"
                           >
                             <div>
-                              <h3 className="text-sm font-medium text-foreground">
+                              <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
                                 {integration.name}
+                                {integration.connected && (
+                                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                )}
                               </h3>
                               <p className="text-sm text-muted-foreground">
                                 {integration.description}
                               </p>
                             </div>
                             <button
-                              className={`px-4 py-2 text-sm font-medium rounded-md ${
+                              onClick={() => {
+                                if (integration.connected && integration.onDisconnect) integration.onDisconnect();
+                                else if (!integration.connected && integration.onConnect) integration.onConnect();
+                              }}
+                              disabled={isConnecting}
+                              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                 integration.connected
                                   ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20"
                                   : "bg-primary/10 text-primary hover:bg-primary/20"
-                              }`}
+                              } disabled:opacity-50`}
                             >
-                              {integration.connected ? "Disconnect" : "Connect"}
+                              {isConnecting && integration.id === 'google' ? "Loading..." : integration.connected ? "Disconnect" : "Connect"}
                             </button>
                           </div>
                         ))}
