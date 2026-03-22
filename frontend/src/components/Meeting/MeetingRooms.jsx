@@ -108,19 +108,19 @@ const MeetingRooms = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <MapPin className="text-indigo-600" size={20} /> Rooms
+    <div className="bg-card rounded-2xl border border-border shadow-sm flex flex-col h-full overflow-hidden">
+      <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted/50">
+        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+          <MapPin className="text-primary" size={20} /> Rooms
         </h2>
         {isBoss && (
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <button className="text-xs font-bold text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded-md transition-colors flex items-center gap-1">
+              <button className="text-xs font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded-md transition-colors flex items-center gap-1">
                 <Plus size={14} /> Add
               </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-white rounded-2xl">
+            <DialogContent className="sm:max-w-[500px] bg-card text-foreground rounded-2xl">
               <DialogHeader>
                 <DialogTitle>Add Meeting Room</DialogTitle>
                 <DialogDescription>
@@ -129,7 +129,7 @@ const MeetingRooms = () => {
               </DialogHeader>
               <form onSubmit={handleCreateRoom} className="space-y-4 mt-2">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">
                     Name
                   </label>
                   <input
@@ -137,13 +137,13 @@ const MeetingRooms = () => {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="e.g. Conference A"
-                    className="w-full p-2 border rounded-md text-sm"
+                    className="w-full p-2 border border-border bg-background text-foreground placeholder:text-muted-foreground rounded-md text-sm"
                     required
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase">
+                    <label className="text-xs font-bold text-muted-foreground uppercase">
                       Capacity
                     </label>
                     <input
@@ -151,26 +151,26 @@ const MeetingRooms = () => {
                       name="capacity"
                       value={formData.capacity}
                       onChange={handleChange}
-                      className="w-full p-2 border rounded-md text-sm"
+                      className="w-full p-2 border border-border bg-background text-foreground rounded-md text-sm"
                       required
                       min="1"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase">
+                    <label className="text-xs font-bold text-muted-foreground uppercase">
                       Floor
                     </label>
                     <input
                       name="floor"
                       value={formData.floor}
                       onChange={handleChange}
-                      className="w-full p-2 border rounded-md text-sm"
+                      className="w-full p-2 border border-border bg-background text-foreground rounded-md text-sm"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">
                     Amenities
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -181,8 +181,8 @@ const MeetingRooms = () => {
                         onClick={() => toggleAmenity(item)}
                         className={`px-3 py-1 text-xs rounded-full border transition-all ${
                           formData.amenities.includes(item)
-                            ? "bg-indigo-100 border-indigo-200 text-indigo-700 font-bold"
-                            : "bg-white border-slate-200 text-slate-600"
+                            ? "bg-primary/20 border-primary text-primary font-bold"
+                            : "bg-card border-border text-foreground"
                         }`}
                       >
                         {item}
@@ -205,27 +205,27 @@ const MeetingRooms = () => {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto divide-y divide-slate-100 max-h-[550px]">
+      <div className="flex-1 overflow-y-auto divide-y divide-border max-h-[550px]">
         {loading ? (
           <div className="flex items-center justify-center h-32">
-            <Loader className="animate-spin text-indigo-500" />
+            <Loader className="animate-spin text-primary" />
           </div>
         ) : rooms.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-sm">
+          <div className="p-8 text-center text-muted-foreground text-sm">
             No rooms added.
           </div>
         ) : (
           rooms.map((room) => (
             <div
               key={room._id}
-              className="p-4 hover:bg-slate-50 transition-colors group"
+              className="p-4 hover:bg-accent/50 transition-colors group"
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-foreground">
                     {room.name}
                   </h3>
-                  <div className="mt-1 flex flex-wrap gap-3 text-xs text-slate-500">
+                  <div className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Users size={12} /> {room.capacity}
                     </span>
@@ -237,7 +237,7 @@ const MeetingRooms = () => {
                     {room.amenities.map((am) => (
                       <span
                         key={am}
-                        className="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] border border-slate-200"
+                        className="px-1.5 py-0.5 bg-muted/50 text-muted-foreground rounded text-[10px] border border-border"
                       >
                         {am}
                       </span>

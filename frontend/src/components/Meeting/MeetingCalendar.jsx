@@ -56,29 +56,29 @@ const MeetingCalendar = ({ meetingsData }) => {
     });
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-card rounded-2xl overflow-hidden border border-border shadow-sm">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <span className="text-blue-600">{getMonthName()}</span>{" "}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-muted/50">
+        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <span className="text-primary">{getMonthName()}</span>{" "}
           {currentDate.getFullYear()}
         </h2>
-        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200">
+        <div className="flex items-center gap-1 bg-card p-1 rounded-lg border border-border">
           <button
             onClick={prevMonth}
-            className="p-1.5 hover:bg-white hover:shadow-sm rounded-md text-slate-500 transition-all"
+            className="p-1.5 hover:bg-accent hover:shadow-sm rounded-md text-muted-foreground transition-all"
           >
             <ChevronLeft size={18} />
           </button>
           <button
             onClick={() => setCurrentDate(new Date())}
-            className="px-3 py-1 text-xs font-bold text-slate-600 hover:bg-white hover:shadow-sm rounded-md transition-all"
+            className="px-3 py-1 text-xs font-bold text-foreground hover:bg-accent hover:shadow-sm rounded-md transition-all"
           >
             Today
           </button>
           <button
             onClick={nextMonth}
-            className="p-1.5 hover:bg-white hover:shadow-sm rounded-md text-slate-500 transition-all"
+            className="p-1.5 hover:bg-accent hover:shadow-sm rounded-md text-muted-foreground transition-all"
           >
             <ChevronRight size={18} />
           </button>
@@ -86,18 +86,18 @@ const MeetingCalendar = ({ meetingsData }) => {
       </div>
 
       {/* Days Grid */}
-      <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/50">
+      <div className="grid grid-cols-7 border-b border-border bg-muted/80">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, i) => (
           <div
             key={i}
-            className="py-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider"
+            className="py-3 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider"
           >
             {day}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 auto-rows-fr bg-slate-100 gap-px flex-1 border-b border-slate-200">
+      <div className="grid grid-cols-7 auto-rows-fr bg-border gap-px flex-1 border-b border-border">
         {days.map((day, i) => {
           const dayMeetings = getMeetingsForDay(day.day);
           const isToday =
@@ -109,16 +109,16 @@ const MeetingCalendar = ({ meetingsData }) => {
           return (
             <div
               key={i}
-              className={`min-h-[100px] bg-white p-2 relative group hover:bg-slate-50/30 transition-colors flex flex-col ${
-                !day.isCurrentMonth && "bg-slate-50/30"
+              className={`min-h-[100px] bg-card p-2 relative group hover:bg-accent/50 transition-colors flex flex-col ${
+                !day.isCurrentMonth && "bg-muted/30"
               }`}
             >
               {day.day && (
                 <span
                   className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium mb-1 ${
                     isToday
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                      : "text-slate-500"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {day.day}
@@ -129,13 +129,13 @@ const MeetingCalendar = ({ meetingsData }) => {
                 {dayMeetings?.map((meeting) => (
                   <div
                     key={meeting._id}
-                    className="px-2 py-1.5 rounded-md bg-blue-50 border border-blue-100 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer group/item"
+                    className="px-2 py-1.5 rounded-md bg-primary/10 border border-primary/20 hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer group/item"
                   >
                     <Link to={`/meetings/${meeting._id}`}>
-                      <div className="text-xs font-bold text-blue-800 truncate">
+                      <div className="text-xs font-bold text-foreground truncate">
                         {meeting.title}
                       </div>
-                      <div className="text-[10px] text-blue-600 flex items-center gap-1 mt-0.5">
+                      <div className="text-[10px] text-primary flex items-center gap-1 mt-0.5">
                         <Clock size={10} /> {formatTimeOnly(meeting.startTime)}
                       </div>
                     </Link>

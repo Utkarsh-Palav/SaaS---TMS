@@ -30,8 +30,8 @@ const DepartmentEmployeeDistribution = ({ departmentId }) => {
   if(!departmentId || data.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-[350px] flex flex-col">
-       <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6">Team Size Distribution</h3>
+    <div className="bg-card rounded-2xl border border-border shadow-sm p-6 h-[350px] flex flex-col">
+       <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-6">Team Size Distribution</h3>
        <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
              <BarChart data={data} margin={{top: 5, right: 5, bottom: 5, left: -20}}>

@@ -216,7 +216,7 @@ function RolesSettings() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-500 gap-2">
+      <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
         <Loader2 className="h-5 w-5 animate-spin" />
         Loading roles…
       </div>
@@ -227,52 +227,52 @@ function RolesSettings() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <Shield className="h-5 w-5 text-blue-600" />
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
             Roles & permissions
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Create roles and assign fine-grained access. Only you (Boss) can
             change this.
           </p>
         </div>
         <Button
           onClick={openCreate}
-          className="bg-blue-600 hover:bg-blue-700 shrink-0"
+          className="bg-primary hover:bg-primary/90 shrink-0"
         >
           <Plus className="h-4 w-4 mr-2" />
           New role
         </Button>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Permissions
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {roles.map((role) => (
-                <tr key={role._id} className="hover:bg-slate-50/80">
+                <tr key={role._id} className="hover:bg-accent/50 transition-colors">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{role.name}</div>
+                    <div className="font-medium text-foreground">{role.name}</div>
                     {role.name === "Boss" && (
-                      <p className="text-xs text-amber-700 mt-0.5">
+                      <p className="text-xs text-amber-500 mt-0.5">
                         System owner — cannot be deleted or renamed
                       </p>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-600">
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
                     {(role.permissions?.length ?? 0)} selected
                   </td>
                   <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
@@ -280,7 +280,7 @@ function RolesSettings() {
                       variant="outline"
                       size="sm"
                       onClick={() => openEdit(role)}
-                      className="border-slate-200"
+                      className="border-border"
                     >
                       <Pencil className="h-3.5 w-3.5 mr-1" />
                       Edit
@@ -289,7 +289,7 @@ function RolesSettings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-red-200 text-red-700 hover:bg-red-50"
+                        className="border-rose-500/20 text-rose-500 hover:bg-rose-500/10"
                         onClick={() => setDeleteTarget(role)}
                       >
                         <Trash2 className="h-3.5 w-3.5 mr-1" />
@@ -303,7 +303,7 @@ function RolesSettings() {
           </table>
         </div>
         {roles.length === 0 && (
-          <p className="px-4 py-8 text-center text-slate-500 text-sm">
+          <p className="px-4 py-8 text-center text-muted-foreground text-sm">
             No roles found. Run the permission seed on the server if the database
             is new.
           </p>
@@ -320,7 +320,7 @@ function RolesSettings() {
 
           <div className="space-y-4 py-2">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Role name
               </label>
               <Input
@@ -328,10 +328,10 @@ function RolesSettings() {
                 onChange={(e) => setFormName(e.target.value)}
                 disabled={editing?.name === "Boss"}
                 placeholder="e.g. Manager"
-                className="border-slate-200"
+                className="border-border bg-card text-foreground"
               />
               {editing?.name === "Boss" && (
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   The Boss role name cannot be changed.
                 </p>
               )}
@@ -339,12 +339,12 @@ function RolesSettings() {
 
             <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Filter resources…"
-                  className="pl-9 border-slate-200"
+                  className="pl-9 border-border bg-card text-foreground"
                 />
               </div>
               <Button
@@ -352,24 +352,24 @@ function RolesSettings() {
                 variant="outline"
                 size="sm"
                 onClick={selectAllVisible}
-                className="border-slate-200 shrink-0"
+                className="border-border shrink-0"
               >
                 Toggle all visible
               </Button>
             </div>
 
-            <div className="rounded-lg border border-slate-200 overflow-hidden">
-              <div className="grid grid-cols-[minmax(8rem,1fr)_repeat(4,minmax(0,5rem))] gap-px bg-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                <div className="bg-slate-50 px-3 py-2">Resource</div>
+            <div className="rounded-lg border border-border overflow-hidden">
+              <div className="grid grid-cols-[minmax(8rem,1fr)_repeat(4,minmax(0,5rem))] gap-px bg-muted text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                <div className="bg-card px-3 py-2">Resource</div>
                 {ACTIONS_ORDER.map((a) => (
-                  <div key={a} className="bg-slate-50 px-1 py-2 text-center">
+                  <div key={a} className="bg-card px-1 py-2 text-center">
                     {a}
                   </div>
                 ))}
               </div>
-              <div className="divide-y divide-slate-200 bg-white max-h-[min(50vh,360px)] overflow-y-auto">
+              <div className="divide-y divide-border bg-card max-h-[min(50vh,360px)] overflow-y-auto">
                 {filteredResources.length === 0 && (
-                  <p className="px-3 py-6 text-sm text-slate-500 text-center">
+                  <p className="px-3 py-6 text-sm text-muted-foreground text-center">
                     No resources match your filter.
                   </p>
                 )}
@@ -388,17 +388,17 @@ function RolesSettings() {
                   return (
                     <div
                       key={resource}
-                      className="grid grid-cols-[minmax(8rem,1fr)_repeat(4,minmax(0,5rem))] gap-px bg-slate-100 items-stretch"
+                      className="grid grid-cols-[minmax(8rem,1fr)_repeat(4,minmax(0,5rem))] gap-px bg-muted/50 items-stretch"
                     >
                       <button
                         type="button"
                         onClick={() => toggleResourceRow(resource)}
-                        className="bg-white px-3 py-2.5 text-left text-sm font-medium text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+                        className="bg-card px-3 py-2.5 text-left text-sm font-medium text-foreground hover:bg-accent flex items-center gap-2 transition-colors"
                       >
                         {rowAll ? (
-                          <CheckSquare className="h-4 w-4 text-blue-600 shrink-0" />
+                          <CheckSquare className="h-4 w-4 text-primary shrink-0" />
                         ) : (
-                          <Square className="h-4 w-4 text-slate-400 shrink-0" />
+                          <Square className="h-4 w-4 text-muted-foreground shrink-0" />
                         )}
                         <span className="break-words capitalize">
                           {resource.replace(/([A-Z])/g, " $1").trim()}
@@ -410,7 +410,7 @@ function RolesSettings() {
                           return (
                             <div
                               key={a}
-                              className="bg-white flex items-center justify-center text-slate-300 text-xs"
+                              className="bg-card flex items-center justify-center text-muted-foreground/30 text-xs"
                             >
                               —
                             </div>
@@ -422,10 +422,10 @@ function RolesSettings() {
                             key={p._id}
                             type="button"
                             onClick={() => togglePerm(p._id)}
-                            className={`bg-white flex items-center justify-center py-2 transition-colors ${
+                            className={`bg-card flex items-center justify-center py-2 transition-colors ${
                               on
-                                ? "bg-blue-50 text-blue-700"
-                                : "hover:bg-slate-50 text-slate-400"
+                                ? "bg-primary/20 text-primary"
+                                : "hover:bg-accent text-muted-foreground"
                             }`}
                             title={permById.get(p._id)?.name}
                           >
@@ -442,7 +442,7 @@ function RolesSettings() {
                 })}
               </div>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               {selectedIds.size} permission
               {selectedIds.size === 1 ? "" : "s"} selected
             </p>
@@ -452,14 +452,14 @@ function RolesSettings() {
             <Button
               variant="outline"
               onClick={() => setDialogOpen(false)}
-              className="border-slate-200"
+              className="border-border"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary hover:bg-primary/90"
             >
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {editing ? "Save changes" : "Create role"}

@@ -44,10 +44,10 @@ const DepartmentDistribution = () => {
     },
   ];
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden h-full">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-medium text-gray-900 flex items-center">
-          <BuildingIcon className="h-5 w-5 mr-2 text-gray-500" />
+    <div className="bg-card shadow rounded-lg overflow-hidden h-full border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <h2 className="text-lg font-medium text-foreground flex items-center">
+          <BuildingIcon className="h-5 w-5 mr-2 text-muted-foreground" />
           Department Distribution
         </h2>
       </div>
@@ -86,9 +86,9 @@ const DepartmentDistribution = () => {
                       backgroundColor: dept.color,
                     }}
                   ></span>
-                  <span className="text-sm text-gray-700">{dept.name}</span>
+                  <span className="text-sm text-muted-foreground">{dept.name}</span>
                 </div>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-foreground">
                   {dept.value}
                 </span>
               </li>
@@ -96,8 +96,8 @@ const DepartmentDistribution = () => {
           </ul>
         </div>
       </div>
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        <button className="w-full text-sm text-blue-600 hover:text-blue-500 font-medium">
+      <div className="px-6 py-4 bg-muted/50 border-t border-border">
+        <button className="w-full text-sm text-primary hover:text-primary/80 font-medium">
           View All Departments
         </button>
       </div>

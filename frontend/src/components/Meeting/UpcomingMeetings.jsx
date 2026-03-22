@@ -30,26 +30,26 @@ const UpcomingMeetings = ({ listView = false, allMeetings }) => {
 
   if (listView) {
     return (
-      <div className="bg-white w-full">
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h3 className="font-bold text-slate-800">All Upcoming</h3>
-          <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-bold">
+      <div className="bg-card w-full rounded-2xl border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted/50">
+          <h3 className="font-bold text-foreground">All Upcoming</h3>
+          <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-bold">
             {upcoming.length}
           </span>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-border">
           {upcoming.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-sm">
+            <div className="p-8 text-center text-muted-foreground text-sm">
               No upcoming meetings found.
             </div>
           ) : (
             upcoming.map((meeting) => (
               <div
                 key={meeting._id}
-                className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between group"
+                className="p-4 hover:bg-accent/50 transition-colors flex items-center justify-between group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-center justify-center w-12 h-12 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 shrink-0">
+                  <div className="flex flex-col items-center justify-center w-12 h-12 bg-primary/10 text-primary rounded-xl border border-primary/20 shrink-0">
                     <span className="text-xs font-bold uppercase">
                       {new Date(meeting.startTime).toLocaleString("default", {
                         month: "short",
@@ -60,10 +60,10 @@ const UpcomingMeetings = ({ listView = false, allMeetings }) => {
                     </span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">
+                    <h4 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">
                       {meeting.title}
                     </h4>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
                         <Clock size={12} /> {formatTime(meeting.startTime)} -{" "}
                         {formatTime(meeting.endTime)}
@@ -88,7 +88,7 @@ const UpcomingMeetings = ({ listView = false, allMeetings }) => {
                     {meeting.participants.slice(0, 3).map((p, i) => (
                       <div
                         key={i}
-                        className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600"
+                        className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground"
                         title={p.firstName}
                       >
                         {p.profileImage ? (
@@ -105,7 +105,7 @@ const UpcomingMeetings = ({ listView = false, allMeetings }) => {
                       </div>
                     ))}
                     {meeting.participants.length > 3 && (
-                      <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                      <div className="w-8 h-8 rounded-full border-2 border-background bg-muted/50 flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                         +{meeting.participants.length - 3}
                       </div>
                     )}
@@ -116,12 +116,12 @@ const UpcomingMeetings = ({ listView = false, allMeetings }) => {
                       to={meeting.virtualLink}
                       target="_blank"
                     >
-                      <button className="text-sm font-medium text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+                      <button className="text-sm font-medium text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors">
                         Join
                       </button>
                     </Link>
                   ) : (
-                    <Link to={`/meetings/${meeting._id}`} className="text-sm font-medium text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+                    <Link to={`/meetings/${meeting._id}`} className="text-sm font-medium text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors">
                       View
                     </Link>
                   )}
@@ -138,33 +138,33 @@ const UpcomingMeetings = ({ listView = false, allMeetings }) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <Calendar className="text-blue-600" size={20} /> Upcoming
+        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+          <Calendar className="text-primary" size={20} /> Upcoming
         </h2>
-        <button className="text-xs font-bold text-slate-500 hover:text-blue-600 flex items-center gap-1">
+        <button className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
           View All <ArrowRight size={14} />
         </button>
       </div>
 
       <div className="grid gap-4">
         {upcoming.length === 0 ? (
-          <div className="p-6 bg-white rounded-xl border border-dashed border-slate-300 text-center text-slate-400 text-sm">
+          <div className="p-6 bg-card rounded-xl border border-dashed border-border text-center text-muted-foreground text-sm">
             No meetings scheduled.
           </div>
         ) : (
           upcoming.slice(0, 3).map((meeting) => (
             <div
               key={meeting._id}
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group relative overflow-hidden"
+              className="bg-card p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-all group relative overflow-hidden"
             >
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-base">
+                  <h3 className="font-bold text-foreground text-base">
                     {meeting.title}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-                    <Clock size={12} className="text-blue-500" />{" "}
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                    <Clock size={12} className="text-primary" />{" "}
                     {formatDate(meeting.startTime)} •{" "}
                     {formatTime(meeting.startTime)} -{" "}
                     {formatTime(meeting.endTime)}
@@ -173,20 +173,20 @@ const UpcomingMeetings = ({ listView = false, allMeetings }) => {
                 <span
                   className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide ${
                     meeting.meetingType === "Virtual"
-                      ? "bg-purple-50 text-purple-700"
-                      : "bg-emerald-50 text-emerald-700"
+                      ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+                      : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                   }`}
                 >
                   {meeting.meetingType}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-3 border-t border-border">
                 <div className="flex -space-x-2">
                   {meeting.participants.slice(0, 3).map((p, i) => (
                     <div
                       key={i}
-                      className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600"
+                      className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground"
                       title={p.firstName}
                     >
                       {p.profileImage ? (
@@ -203,12 +203,12 @@ const UpcomingMeetings = ({ listView = false, allMeetings }) => {
                     </div>
                   ))}
                   {meeting.participants.length > 3 && (
-                    <div className="flex items-center justify-center text-xs font-bold text-slate-500 ml-3">
+                    <div className="flex items-center justify-center text-xs font-bold text-muted-foreground ml-3">
                       +{meeting.participants.length - 3} more
                     </div>
                   )}
                 </div>
-                <button className="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+                <button className="text-xs font-bold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-primary/20">
                   Details
                 </button>
               </div>

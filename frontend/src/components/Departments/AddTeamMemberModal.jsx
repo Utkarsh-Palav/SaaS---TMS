@@ -88,14 +88,14 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.30)] backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-lg font-medium text-gray-900">
+      <div className="bg-card rounded-lg shadow-xl w-full max-w-lg border border-border">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h3 className="text-lg font-medium text-foreground">
             Add Members to Team
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <XIcon className="h-6 w-6" />
           </button>
@@ -105,14 +105,14 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
           <div className="p-6 space-y-4">
             {/* Error Message */}
             {error && (
-              <div className="p-3 rounded-md bg-red-50 border border-red-200">
-                <p className="text-sm font-medium text-red-700">{error}</p>
+              <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
+                <p className="text-sm font-medium text-destructive">{error}</p>
               </div>
             )}
             {/* Success Message */}
             {success && (
-              <div className="p-3 rounded-md bg-green-50 border border-green-200">
-                <p className="text-sm font-medium text-green-700">{success}</p>
+              <div className="p-3 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                <p className="text-sm font-medium text-emerald-500">{success}</p>
               </div>
             )}
 
@@ -120,7 +120,7 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
             <div>
               <label
                 htmlFor="team"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-muted-foreground mb-1"
               >
                 Select Team
               </label>
@@ -129,7 +129,7 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
                 name="team"
                 value={selectedTeamId}
                 onChange={handleTeamChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-md focus:ring-primary focus:border-primary disabled:opacity-50"
                 disabled={isLoading}
               >
                 <option value="" disabled>
@@ -145,16 +145,16 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
 
             {/* Employee Selection List */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
                 Select Employees
               </label>
-              <ul className="max-h-60 overflow-y-auto border border-gray-300 rounded-md divide-y divide-gray-200">
+              <ul className="max-h-60 overflow-y-auto border border-border rounded-md divide-y divide-border">
                 {employees.length === 0 ? (
-                  <li className="p-3 text-sm text-gray-500">
+                  <li className="p-3 text-sm text-muted-foreground">
                     No employees found in this department.
                   </li>
                 ) : filteredEmployees.length === 0 ? (
-                  <li className="p-3 text-sm text-gray-500">
+                  <li className="p-3 text-sm text-muted-foreground">
                     All employees in this department are already on this team.
                   </li>
                 ) : (
@@ -162,7 +162,7 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
                     <li key={emp._id}>
                       <label
                         htmlFor={emp._id}
-                        className="flex items-center p-3 cursor-pointer hover:bg-gray-50"
+                        className="flex items-center p-3 cursor-pointer hover:bg-muted/50 transition-colors"
                       >
                         <input
                           type="checkbox"
@@ -170,13 +170,13 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
                           value={emp._id}
                           checked={selectedEmployeeIds.includes(emp._id)}
                           onChange={() => handleCheckboxChange(emp._id)}
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="h-4 w-4 text-primary border-border rounded focus:ring-primary bg-background"
                         />
                         <div className="ml-3">
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-foreground">
                             {emp.username}
                           </span>
-                          <span className="text-sm text-gray-500 ml-2">
+                          <span className="text-sm text-muted-foreground ml-2">
                             ({emp.jobTitle})
                           </span>
                         </div>
@@ -189,7 +189,7 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
           </div>
 
           {/* Modal Footer */}
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-lg">
+          <div className="bg-muted/50 border-t border-border px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-lg">
             <button
               type="submit"
               disabled={
@@ -197,7 +197,7 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
                 selectedEmployeeIds.length === 0 ||
                 !selectedTeamId
               }
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <Loader className="animate-spin h-5 w-5 mr-2" />
@@ -211,7 +211,7 @@ const AddTeamMemberModal = ({ onClose, teams, employees }) => {
             <button
               type="button"
               onClick={onClose}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+              className="mt-3 w-full inline-flex justify-center rounded-md border border-border shadow-sm px-4 py-2 bg-card text-base font-medium text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm transition-colors"
             >
               Cancel
             </button>

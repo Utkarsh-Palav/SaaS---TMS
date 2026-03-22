@@ -19,9 +19,9 @@ const VideoCall = ({ roomId, user, onLeave, isVideo = true }) => {
   const containerRef = useRef(null);
   const zpRef = useRef(null); // Keep track of the Zego instance
 
-  // Env variables (Move these to .env in production)
-  const appID = 1255435158;
-  const serverSecret = "01873c864a039c9cad88a48c1b0295bb";
+  // Env variables
+  const appID = parseInt(import.meta.env.VITE_ZEGO_APP_ID) || 1255435158;
+  const serverSecret = import.meta.env.VITE_ZEGO_SERVER_SECRET || "01873c864a039c9cad88a48c1b0295bb";
 
   useEffect(() => {
     const startMeeting = async () => {

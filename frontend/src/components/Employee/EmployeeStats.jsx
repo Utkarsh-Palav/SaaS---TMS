@@ -30,39 +30,39 @@ const EmployeeStats = ({
         value={totalEmployee}
         change={employeeIncresed}
         trend="up"
-        icon={<UsersIcon className="h-6 w-6 text-blue-600" />}
-        bgColor="bg-blue-50"
+        icon={<UsersIcon className="h-6 w-6 text-primary" />}
+        bgColor="bg-primary/10 border border-primary/20"
       />
       <StatCard
         title="New Hires"
         value={newHires}
         change={newHirePercentage}
         trend="up"
-        icon={<UserPlusIcon className="h-6 w-6 text-green-600" />}
-        bgColor="bg-green-50"
+        icon={<UserPlusIcon className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />}
+        bgColor="bg-emerald-500/10 border border-emerald-500/20"
       />
       <StatCard
         title="Active"
         value={activeEmployee}
         change="+8%"
         trend="up"
-        icon={<UserCheckIcon className="h-6 w-6 text-indigo-600" />}
-        bgColor="bg-indigo-50"
+        icon={<UserCheckIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />}
+        bgColor="bg-indigo-500/10 border border-indigo-500/20"
       />
       <StatCard
         title="Turnover Rate"
         value="5.2%"
         change="-2.1%"
         trend="down"
-        icon={<UserMinusIcon className="h-6 w-6 text-yellow-600" />}
-        bgColor="bg-yellow-50"
+        icon={<UserMinusIcon className="h-6 w-6 text-amber-600 dark:text-amber-400" />}
+        bgColor="bg-amber-500/10 border border-amber-500/20"
       />
     </div>
   );
 };
 const StatCard = ({ title, value, change, trend, icon, bgColor }) => {
   return (
-    <div className="bg-white overflow-hidden shadow rounded-lg">
+    <div className="bg-card border border-border overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-shadow">
       <div className="p-5">
         <div className="flex items-center">
           <div className={`flex-shrink-0 p-3 rounded-md ${bgColor}`}>
@@ -70,22 +70,22 @@ const StatCard = ({ title, value, change, trend, icon, bgColor }) => {
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">
+              <dt className="text-sm font-medium text-muted-foreground truncate">
                 {title}
               </dt>
               <dd>
-                <div className="text-lg font-medium text-gray-900">{value}</div>
+                <div className="text-lg font-medium text-foreground">{value}</div>
               </dd>
             </dl>
           </div>
         </div>
       </div>
-      <div className="bg-gray-50 px-5 py-3">
+      <div className="bg-muted/50 px-5 py-3 border-t border-border">
         <div className="text-sm">
           <div className="flex items-center">
             {trend === "up" ? (
               <svg
-                className="w-5 h-5 text-green-500"
+                className="w-5 h-5 text-emerald-500"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -97,7 +97,7 @@ const StatCard = ({ title, value, change, trend, icon, bgColor }) => {
               </svg>
             ) : (
               <svg
-                className="w-5 h-5 text-red-500"
+                className="w-5 h-5 text-rose-500"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -110,7 +110,7 @@ const StatCard = ({ title, value, change, trend, icon, bgColor }) => {
             )}
             <span
               className={`text-sm font-medium ${
-                trend === "up" ? "text-green-600" : "text-red-600"
+                trend === "up" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
               } ml-1`}
             >
               {change} from last quarter
