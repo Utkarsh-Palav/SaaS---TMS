@@ -129,11 +129,11 @@ const ChatWindow = ({ chat, onBack }) => {
         <div className="flex items-center gap-2">
           <IconButton
             icon={<Phone size={18} />}
-            onClick={() => initiateCall(otherUser._id, 'audio')}
+            onClick={() => initiateCall(otherUser, 'audio')}
           />
           <IconButton
             icon={<Video size={18} />}
-            onClick={() => initiateCall(otherUser._id, "video")}
+            onClick={() => initiateCall(otherUser, "video")}
           />
           <IconButton icon={<MoreVertical size={18} />} />
         </div>

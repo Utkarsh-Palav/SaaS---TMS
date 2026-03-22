@@ -64,6 +64,11 @@
     </script>
   </head>
   <body>
+    <!-- Polyfill for simple-peer in Vite -->
+    <script>
+      window.global = window;
+      var process = { env: {} };
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

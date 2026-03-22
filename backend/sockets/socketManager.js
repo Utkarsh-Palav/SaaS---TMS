@@ -139,6 +139,19 @@ const initializeSocket = (io) => {
        io.to(to).emit("callEnded");
     });
 
+    // WebRTC Signaling Events
+    socket.on("webrtc_ready", ({ to }) => {
+      io.to(to).emit("webrtc_ready");
+    });
+
+    socket.on("callUser", ({ userToCall, signalData, from }) => {
+      io.to(userToCall).emit("callUser", { signal: signalData, from });
+    });
+
+    socket.on("answerCall", ({ to, signal }) => {
+      io.to(to).emit("callAccepted", signal);
+    });
+
     socket.on("disconnect", () => {
       console.log(`❌ User disconnected: ${socket.user.id}`); // You can emit a status update here if you want
     });

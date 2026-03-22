@@ -23,6 +23,9 @@ export const CallProvider = ({ children }) => {
     if (!socket) return;
 
     const handleIncomingCall = (data) => {
+      console.log("Receiving Call Signal:", data);
+      toast.success(`Incoming Call from ${data.caller?.firstName}`);
+
       if (isCallActive) {
         socket.emit("busyCall", { to: data.caller._id });
         return;
@@ -48,18 +51,19 @@ export const CallProvider = ({ children }) => {
     };
 
     const handleCallCancelled = () => {
-      if (incomingCall) {
-        addNotification({
-          title: "Missed Call",
-          message: `You missed a call from ${incomingCall.caller.username}`,
-          type: "missed_call",
-          timestamp: new Date().toISOString(),
-          meta: { userId: incomingCall.caller._id }, // Useful if you want to add a "Call Back" button later
-        });
-
-        setIncomingCall(null);
-        toast.info("Call cancelled.");
-      }
+      setIncomingCall((prev) => {
+        if (prev) {
+          addNotification({
+            title: "Missed Call",
+            message: `You missed a call from ${prev.caller.username}`,
+            type: "missed_call",
+            timestamp: new Date().toISOString(),
+            meta: { userId: prev.caller._id },
+          });
+          toast.info("Call cancelled.");
+        }
+        return null;
+      });
     };
 
     const handleCallEnded = () => {
@@ -83,11 +87,12 @@ export const CallProvider = ({ children }) => {
     return () => {
       socket.off("incomingCall", handleIncomingCall);
       socket.off("callRejected", handleCallRejected);
+      socket.off("callCancelled", handleCallCancelled);
       socket.off("callEnded", handleCallEnded);
     };
-  }, [socket, isCallActive, incomingCall, addNotification]);
+  }, [socket, isCallActive, addNotification]);
 
-  const initiateCall = (recipientId, type) => {
+  const initiateCall = (recipient, type) => {
     if (!socket) {
       toast.error("Connection lost. Cannot start call.");
       return;
@@ -97,9 +102,9 @@ export const CallProvider = ({ children }) => {
       return;
     }
 
-    const roomId = `${user._id}-${recipientId}-${Date.now()}`;
+    const roomId = `${user._id}-${recipient._id}-${Date.now()}`;
 
-    setActiveCall({ roomId, type, recipientId });
+    setActiveCall({ roomId, type, recipientId: recipient._id, remoteUser: recipient });
     setIsCallActive(true);
 
     const callerData = {
@@ -111,7 +116,7 @@ export const CallProvider = ({ children }) => {
     };
 
     socket.emit("startCall", {
-      to: recipientId,
+      to: recipient._id,
       caller: callerData,
       roomId,
       type,
@@ -137,9 +142,12 @@ export const CallProvider = ({ children }) => {
   };
 
   const endCall = () => {
-    if (activeCall?.recipientId && socket) {
-      socket.emit("endCall", { to: activeCall.recipientId });
-    }
+    setActiveCall((prev) => {
+      if (prev?.recipientId && socket) {
+        socket.emit("endCall", { to: prev.recipientId });
+      }
+      return null;
+    });
 
     addNotification({
       title: "Call Summary",
@@ -148,7 +156,6 @@ export const CallProvider = ({ children }) => {
       timestamp: new Date().toISOString(),
     });
 
-    setActiveCall(null);
     setIsCallActive(false);
     setIncomingCall(null);
   };
@@ -167,10 +174,13 @@ export const CallProvider = ({ children }) => {
 
       {activeCall && (
         <VideoCall
-          roomId={activeCall.roomId}
           user={user}
           isVideo={activeCall.type === "video"}
           onLeave={endCall}
+          socket={socket}
+          isInitiator={!!activeCall.recipientId}
+          recipientId={activeCall.recipientId || activeCall.otherUser?._id}
+          remoteUser={activeCall.remoteUser || activeCall.otherUser}
         />
       )}
     </CallContext.Provider>

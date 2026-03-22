@@ -10,7 +10,7 @@ const IncomingCall = ({ caller, type, onAccept, onDecline }) => {
     audio.volume = 0.5;
 
     audio.play().catch((error) => {
-      console.warn("Audio play failed (browser policy):", error);
+      console.warn("Audio play failed (browser autoplay policy requires user interaction):", error);
     });
 
     audioRef.current = audio;
@@ -24,10 +24,10 @@ const IncomingCall = ({ caller, type, onAccept, onDecline }) => {
     };
   }, []);
   return (
-    <div className="fixed top-20 right-4 z-100 w-full max-w-sm animate-in slide-in-from-top-5 fade-in duration-300">
-      <div className="bg-white p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 flex items-center gap-4 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-indigo-500"></div>
-        <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+    <div className="fixed top-20 right-4 z-[100] w-full max-w-sm animate-in slide-in-from-top-5 fade-in duration-300">
+      <div className="bg-card p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-border flex items-center gap-4 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-indigo-500"></div>
+        <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-primary/10 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
 
         <div className="relative shrink-0">
           {caller.profileImage ? (
@@ -46,13 +46,13 @@ const IncomingCall = ({ caller, type, onAccept, onDecline }) => {
 
         {/* 4. Text Info (Compact layout) */}
         <div className="flex-1 min-w-0 z-10">
-          <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-0.5">
+          <p className="text-xs font-bold text-primary uppercase tracking-wider mb-0.5">
             Incoming {type === "video" ? "Video" : "Audio"} Call
           </p>
-          <h3 className="text-lg font-bold text-slate-900 truncate">
+          <h3 className="text-lg font-bold text-foreground truncate">
             {caller.firstName} {caller.lastName}
           </h3>
-          <p className="text-sm text-slate-500 truncate">
+          <p className="text-sm text-muted-foreground truncate">
             {caller.jobTitle || "Teammate"}
           </p>
         </div>
