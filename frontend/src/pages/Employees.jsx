@@ -100,7 +100,6 @@ const EmployeesPage = () => {
     country: "",
     bio: "",
   });
-  const [selectedRoles, setSelectedRoles] = useState(null);
   const [selectedDept, setSelectedDept] = useState(null);
   const [createLoading, setCreateLoading] = useState(false);
   const [isCountriesLoading, setIsCountriesLoading] = useState(true);
@@ -668,16 +667,16 @@ const EmployeesPage = () => {
                       </div>
 
                       <InputGroup label="System Role">
-                        <input
-                          type="text"
-                          name="roleName"
+                        <RoleSelect
                           value={formData.roleName}
-                          onChange={handleChange}
-                          placeholder="e.g. Employee, Manager"
+                          onChange={(roleName) =>
+                            setFormData((prev) => ({ ...prev, roleName }))
+                          }
                           className={inputClass}
                           required
                         />
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          Predefined roles from your organization settings.
                           Defines their permissions in the system.
                         </p>
                       </InputGroup>

@@ -12,16 +12,16 @@ const router = express.Router();
 
 router.use(verifyToken);
 
-router.post("/", authorizePermission("team.manage"), createTeam);
-router.delete('/:teamId/delete', authorizePermission("team.manage"), deleteTeam);
+router.post("/", authorizePermission("create:team"), createTeam);
+router.delete("/:teamId/delete", authorizePermission("delete:team"), deleteTeam);
 router.put(
   "/:teamId/add-members",
-  authorizePermission("team.manage"),
+  authorizePermission("update:team"),
   addMemberToTeam
 );
 router.put(
   "/:teamId/remove-members",
-  authorizePermission("team.manage"),
+  authorizePermission("update:team"),
   removeMemberFromTeam
 );
 

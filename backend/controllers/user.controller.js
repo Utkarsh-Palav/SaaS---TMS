@@ -8,6 +8,20 @@ import ActivityLog from "../models/activityLog.model.js";
 import Task from "../models/task.model.js";
 import mongoose from "mongoose";
 
+/** Roles available in the create-employee form (Boss is not assignable here). */
+export const listAssignableRolesForEmployee = async (req, res) => {
+  try {
+    const roles = await Role.find({ name: { $ne: "Boss" } })
+      .select("name")
+      .sort({ name: 1 })
+      .lean();
+    res.json(roles);
+  } catch (error) {
+    console.error("listAssignableRolesForEmployee:", error);
+    res.status(500).json({ message: "Failed to load roles" });
+  }
+};
+
 export const getAllEmployeesAndStats = async (req, res) => {
   // 1. Calculate the date one year ago
   const oneYearAgo = new Date();
@@ -165,6 +179,12 @@ export const createEmployee = async (req, res) => {
       country,
       bio,
     } = req.body;
+
+    const emailNorm = String(email ?? "").trim();
+    if (!emailNorm || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
+      return res.status(400).json({ message: "A valid email address is required." });
+    }
+
     if (roleName !== "Boss" && !departmentId) {
       return res.status(400).json({
         message: "A department ID is required for Managers and Employees.",
@@ -172,7 +192,7 @@ export const createEmployee = async (req, res) => {
     }
 
     const existingUser = await User.findOne({
-      email,
+      email: emailNorm,
       organizationId: req.user.organizationId,
     });
 
@@ -219,34 +239,69 @@ export const createEmployee = async (req, res) => {
 
     await newEmployee.save();
 
+    // Department.manager is a single ObjectId in the schema — not an array.
+    // $addToSet was incorrectly used before and could store an array, breaking validation.
     if (roleName === "Manager" && departmentId) {
-      const updatedDept = await Department.findOneAndUpdate(
-        { _id: departmentId, organizationId: req.user.organizationId },
-        { $addToSet: { manager: newEmployee._id } },
-        { new: true }
-      );
+      const employeeRole = await Role.findOne({ name: "Employee" });
+      const deptOid = new mongoose.Types.ObjectId(departmentId);
+      const orgOid =
+        req.user.organizationId instanceof mongoose.Types.ObjectId
+          ? req.user.organizationId
+          : new mongoose.Types.ObjectId(req.user.organizationId);
 
-      await updatedDept.save();
+      const existing = await Department.collection.findOne({
+        _id: deptOid,
+        organizationId: orgOid,
+      });
 
-      if (!updatedDept) {
-        // This means the departmentId was invalid or didn't belong to the org
+      if (!existing) {
         console.warn(
           `Warning: Could not assign manager. Department ${departmentId} not found in org ${req.user.organizationId}.`
+        );
+      } else {
+        const raw = existing.manager;
+        const oldIds = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        if (employeeRole) {
+          for (const oid of oldIds) {
+            if (!oid) continue;
+            if (oid.toString() === newEmployee._id.toString()) continue;
+            const oldUser = await User.findById(oid);
+            if (oldUser) {
+              oldUser.role = employeeRole._id;
+              await oldUser.save();
+            }
+          }
+        }
+
+        await Department.updateOne(
+          { _id: deptOid, organizationId: orgOid },
+          { $set: { manager: newEmployee._id } }
         );
       }
     }
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?email=${email}&token=${resetToken}`;
+    const baseUrl = (
+      process.env.FRONTEND_URL ||
+      process.env.CLIENT_URL ||
+      "http://localhost:5173"
+    ).replace(/\/$/, "");
+    const resetLink = `${baseUrl}/reset-password?email=${encodeURIComponent(emailNorm)}&token=${encodeURIComponent(resetToken)}`;
 
     const username = `${newEmployee.firstName} ${newEmployee.lastName}`;
 
-    await sendWelcomeEmail({
-      email,
+    const mailResult = await sendWelcomeEmail({
+      email: newEmployee.email,
       name: username,
-      role: jobTitle,
+      role: roleName,
       tempPassword,
       resetLink,
     });
+
+    if (!mailResult) {
+      console.error(
+        `[createEmployee] Welcome email was not delivered (SendGrid + SMTP failed) for ${emailNorm}. Check logs above.`
+      );
+    }
 
     const populatedEmployee = await User.findById(newEmployee._id)
       .select("-password -resetToken -resetTokenExpires")

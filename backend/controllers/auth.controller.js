@@ -190,7 +190,7 @@ export const registerOrg = async (req, res) => {
       };
     }
 
-    registrationEmail(
+    await registrationEmail(
       {
         firstName: newUser.firstName,
         lastName: newUser.lastName,

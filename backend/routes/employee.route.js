@@ -8,34 +8,51 @@ import {
   deleteEmployee,
   getAllEmployees,
   getSingleEmployee,
+  listAssignableRolesForEmployee,
   updateOrganizationalDetails,
   updatePersonalDetails,
 } from "../controllers/user.controller.js";
 
-router.get("/all-employee", verifyToken, getAllEmployees);
-router.get("/:id", verifyToken, getSingleEmployee);
+router.get(
+  "/all-employee",
+  verifyToken,
+  authorizePermission("read:employee"),
+  getAllEmployees
+);
+router.get(
+  "/role-options",
+  verifyToken,
+  authorizePermission("create:employee"),
+  listAssignableRolesForEmployee
+);
+router.get(
+  "/:id",
+  verifyToken,
+  authorizePermission("read:employee"),
+  getSingleEmployee
+);
 router.post(
   "/",
   verifyToken,
-  authorizePermission("employee.create"),
+  authorizePermission("create:employee"),
   createEmployee
 );
 router.put(
-  "/:id",
+  "/org/:id",
   verifyToken,
-  authorizePermission("employee.updateOrgDetails"),
+  authorizePermission("update:employee"),
   updateOrganizationalDetails
 );
 router.put(
-  "/:id",
+  "/personal/:id",
   verifyToken,
-  authorizePermission("employee.updatePersonal"),
+  authorizePermission("update:employee"),
   updatePersonalDetails
 );
 router.delete(
   "/:id",
   verifyToken,
-  authorizePermission("employee.delete"),
+  authorizePermission("delete:employee"),
   deleteEmployee
 );
 

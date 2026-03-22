@@ -23,6 +23,7 @@ import dashboard from "./routes/dashboard.route.js";
 import roomRoute from './routes/room.route.js';
 import meetingRoute from './routes/meeting.route.js';
 import activityRoute from './routes/recentActivity.route.js';
+import roleRoute from "./routes/role.route.js";
 import initializeSocket from "./sockets/socketManager.js";
 
 connectDB();
@@ -74,6 +75,7 @@ app.use("/api/chat", chatRoute);
 app.use('/api/room', roomRoute);
 app.use('/api/meeting', meetingRoute);
 app.use('/api/activities', activityRoute);
+app.use("/api/roles", roleRoute);
 
 // Global error handler
 app.use((err, req, res, next) => {

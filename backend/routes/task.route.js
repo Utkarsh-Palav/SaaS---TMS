@@ -20,59 +20,69 @@ import { authorizePermission } from "../middlewares/authorizePermission.js";
 router.post(
   "/create",
   verifyToken,
-  authorizePermission("task.create"),
+  authorizePermission("create:task"),
   createTask
 );
 router.delete(
   "/:taskId",
   verifyToken,
-  authorizePermission("task.delete"),
+  authorizePermission("delete:task"),
   deleteTask
 );
 router.put(
   "/:taskId/employees/add",
   verifyToken,
-  authorizePermission("task.addEmployee"),
+  authorizePermission("update:task"),
   addEmployeeToTask
 );
 router.put(
   "/:taskId/employees/remove/:employeeId",
   verifyToken,
-  authorizePermission("task.removeEmployee"),
+  authorizePermission("update:task"),
   removeEmployeeFromTask
 );
 router.patch(
   "/:taskId/status",
   verifyToken,
-  authorizePermission("task.update"),
+  authorizePermission("update:task"),
   updateTaskStatus
 );
 router.post(
   "/:taskId/milestone",
   verifyToken,
-  authorizePermission("task.manageMilestones"),
+  authorizePermission("update:task"),
   addMilestones
 );
 router.patch(
   "/:taskId/milestone",
   verifyToken,
-  authorizePermission("task.manageMilestones"),
+  authorizePermission("update:task"),
   updateMilestone
 );
 router.post(
   "/:taskId/assign-team",
   verifyToken,
-  authorizePermission("task.assignTeam"),
+  authorizePermission("update:task"),
   assignTaskToTeam
 );
 router.put(
   "/:id",
   verifyToken,
-  authorizePermission("task.update"),
+  authorizePermission("update:task"),
   updateTitleAndDesc
 );
 
-router.get("/getTask", verifyToken, getTasks);
-router.get("/:id", verifyToken, getTaskById);
+router.get(
+  "/getTask",
+  verifyToken,
+  authorizePermission("read:task"),
+  getTasks
+);
+router.get(
+  "/:id",
+  verifyToken,
+  authorizePermission("read:task"),
+  getTaskById
+);
 
 export default router;

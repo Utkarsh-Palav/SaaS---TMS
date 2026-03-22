@@ -6,7 +6,9 @@ import {
   SaveIcon,
   BellDot,
   User,
+  Shield,
 } from "lucide-react";
+import RolesSettings from "@/components/Settings/RolesSettings";
 import Sidebar from "@/components/Layout/Sidebar";
 import { useNotifications } from "@/context/NotificationContext";
 import NotificationPanel from "@/components/Dashboard/NotificationPanel";
@@ -229,6 +231,19 @@ const Settings = () => {
                     </svg>
                     Integrations
                   </button>
+                  {user?.role?.name === "Boss" && (
+                    <button
+                      onClick={() => setActiveTab("roles")}
+                      className={`${
+                        activeTab === "roles"
+                          ? "bg-blue-50 border-blue-500 text-blue-700"
+                          : "border-transparent text-gray-900 hover:bg-gray-50 hover:text-gray-900"
+                      } group border-l-4 px-3 py-2 flex items-center text-sm font-medium w-full`}
+                    >
+                      <Shield className="shrink-0 -ml-1 mr-3 h-6 w-6" />
+                      Roles & permissions
+                    </button>
+                  )}
                 </nav>
               </aside>
               {/* Main Content */}
@@ -693,6 +708,13 @@ const Settings = () => {
                           </button>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                )}
+                {activeTab === "roles" && user?.role?.name === "Boss" && (
+                  <div className="shadow sm:rounded-md sm:overflow-hidden">
+                    <div className="bg-white py-6 px-4 sm:p-6">
+                      <RolesSettings />
                     </div>
                   </div>
                 )}

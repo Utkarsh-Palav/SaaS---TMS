@@ -1,9 +1,13 @@
 // utils/sendgrid.mail.js
 import sgMail from "@sendgrid/mail";
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-const { SENDGRID_API_KEY, SENDER_EMAIL, CLIENT_URL } = process.env;
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY?.trim();
+const SENDER_EMAIL = process.env.SENDER_EMAIL?.trim();
+const SENDER_NAME = process.env.SENDER_NAME?.trim() || "Taskify";
+const { CLIENT_URL } = process.env;
 
 if (!SENDGRID_API_KEY || !SENDER_EMAIL) {
   console.warn("⚠️ Missing SendGrid env vars. Set SENDGRID_API_KEY and SENDER_EMAIL.");
@@ -11,17 +15,109 @@ if (!SENDGRID_API_KEY || !SENDER_EMAIL) {
   sgMail.setApiKey(SENDGRID_API_KEY);
 }
 
-// simple helper to send
+const fromAddress = () => ({ email: SENDER_EMAIL, name: SENDER_NAME });
+
+function escapeHtml(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Normalize and validate a single recipient email for SendGrid / SMTP. */
+function normalizeTo(to) {
+  if (to == null) return null;
+  const s = String(to).trim();
+  if (!s || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) {
+    return null;
+  }
+  return s;
+}
+
+let smtpTransport = null;
+function getSmtpTransport() {
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS?.replace(/\s+/g, "");
+  if (!host || !user || !pass) return null;
+  if (!smtpTransport) {
+    const port = Number(process.env.SMTP_PORT) || 587;
+    smtpTransport = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+    });
+  }
+  return smtpTransport;
+}
+
+async function sendViaSmtp({ to, subject, html, text }) {
+  const transporter = getSmtpTransport();
+  if (!transporter) return null;
+  const fromUser = process.env.SMTP_USER?.trim();
+  try {
+    await transporter.sendMail({
+      from: `"${SENDER_NAME}" <${fromUser}>`,
+      to,
+      subject,
+      html,
+      text: text || String(html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+    });
+    console.log("[SMTP] Delivered to:", to);
+    return [{ statusCode: 250 }];
+  } catch (err) {
+    console.error("[SMTP] Send failed:", err?.message || err);
+    return null;
+  }
+}
+
+/**
+ * Sends via SendGrid; on failure optionally retries via SMTP (same .env as Gmail).
+ * Logs failures with recipient for debugging (sandbox / unverified recipient / quota).
+ */
 async function sendMail({ to, subject, html, text }) {
+  const toNorm = normalizeTo(to);
+  if (!toNorm) {
+    console.error("[SendGrid] Invalid or missing recipient address:", to);
+    return null;
+  }
+
+  if (!SENDGRID_API_KEY || !SENDER_EMAIL) {
+    console.warn("[SendGrid] Missing API key or sender — trying SMTP only.");
+    return sendViaSmtp({ to: toNorm, subject, html, text });
+  }
+
   const msg = {
-    to,
-    from: SENDER_EMAIL,
+    to: toNorm,
+    from: fromAddress(),
     subject,
     html,
-    text,
+    text: text || undefined,
   };
 
-  return sgMail.send(msg); // returns a promise
+  try {
+    return await sgMail.send(msg);
+  } catch (err) {
+    const apiMsg =
+      err?.response?.body?.errors?.[0]?.message ||
+      err?.message ||
+      "Unknown SendGrid error";
+    console.error("[SendGrid] Email not sent:", {
+      to: toNorm,
+      error: apiMsg,
+      body: err?.response?.body,
+    });
+
+    const smtp = getSmtpTransport();
+    if (smtp) {
+      console.warn("[SendGrid] Attempting SMTP fallback for:", toNorm);
+      return sendViaSmtp({ to: toNorm, subject, html, text });
+    }
+    return null;
+  }
 }
 
 /* ----- exported email functions ----- */
@@ -39,14 +135,14 @@ export const registrationEmail = async (user, plan, transactionDetails = null) =
         <h1 style="margin:0;">Taskify</h1>
       </div>
       <div style="padding:20px;">
-        <h2>Hello ${user.firstName} ${user.lastName},</h2>
-        <p>Thank you for registering your organization <strong>${user.organizationName}</strong> with Taskify.</p>
+        <h2>Hello ${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)},</h2>
+        <p>Thank you for registering your organization <strong>${escapeHtml(user.organizationName)}</strong> with Taskify.</p>
         <p>Your account is now active. You can log in and start setting up your workspace.</p>
         ${isPaid ? `<h3>Payment Receipt</h3>
-          <p>Transaction ID: ${transactionDetails.razorpayPaymentId}</p>
-          <p>Amount: ₹${transactionDetails.amount}</p>` : ""}
+          <p>Transaction ID: ${escapeHtml(String(transactionDetails.razorpayPaymentId))}</p>
+          <p>Amount: ₹${escapeHtml(String(transactionDetails.amount))}</p>` : ""}
         <p style="text-align:center;margin-top:30px;">
-          <a href="${CLIENT_URL}/login" style="background:#2563EB;color:#fff;padding:12px 18px;border-radius:6px;text-decoration:none;">Go to Dashboard</a>
+          <a href="${escapeHtml(`${(CLIENT_URL || "").replace(/\/$/, "")}/login`)}" style="background:#2563EB;color:#fff;padding:12px 18px;border-radius:6px;text-decoration:none;">Go to Dashboard</a>
         </p>
       </div>
       <div style="background:#f4f4f4;color:#777;padding:15px;text-align:center;font-size:12px;">
@@ -61,31 +157,58 @@ export const registrationEmail = async (user, plan, transactionDetails = null) =
 export const sendPasswordResetEmail = async ({ email, name, resetLink }) => {
   const subject = "Reset Your Taskify Password";
   const html = `
-    <h3>Hello ${name},</h3>
+    <h3>Hello ${escapeHtml(name)},</h3>
     <p>You requested to reset your password. Click the button below:</p>
-    <a href="${resetLink}" style="padding:10px 20px;background:#facc15;color:#000;text-decoration:none;border-radius:5px;">Reset Password</a>
+    <a href="${escapeHtml(resetLink)}" style="padding:10px 20px;background:#facc15;color:#000;text-decoration:none;border-radius:5px;">Reset Password</a>
     <p>This link will expire in 15 minutes.</p>
   `;
   return sendMail({ to: email, subject, html });
 };
 
-export const sendWelcomeEmail = async ({ email, name, role, tempPassword, resetLink }) => {
+export const sendWelcomeEmail = async ({
+  email,
+  name,
+  role,
+  tempPassword,
+  resetLink,
+}) => {
   const subject = "Welcome to Taskify - Your Credentials";
+  const safeName = escapeHtml(name);
+  const safeRole = escapeHtml(role);
+  const safeTemp = escapeHtml(tempPassword);
+  const safeLink = escapeHtml(resetLink);
+
   const html = `
     <div style="font-family: Arial, sans-serif;line-height:1.6;">
-      <h2>Welcome, ${name} 👋</h2>
-      <p>You have been registered as a <strong>${role}</strong> in your organization on <strong>Taskify</strong>.</p>
-      <p><strong>Temporary Password:</strong> <code>${tempPassword}</code></p>
+      <h2>Welcome, ${safeName} 👋</h2>
+      <p>You have been registered as a <strong>${safeRole}</strong> in your organization on <strong>Taskify</strong>.</p>
+      <p><strong>Temporary Password:</strong> <code>${safeTemp}</code></p>
       <p>Please click the button below to reset your password and activate your account:</p>
-      <a href="${resetLink}" style="display:inline-block;padding:10px 20px;background:#facc15;color:#000;text-decoration:none;border-radius:5px;">Set New Password</a>
+      <a href="${safeLink}" style="display:inline-block;padding:10px 20px;background:#facc15;color:#000;text-decoration:none;border-radius:5px;">Set New Password</a>
       <p><strong>This link expires in 15 minutes.</strong></p>
       <p>– The Taskify Team</p>
     </div>
   `;
-  return sendMail({ to: email, subject, html });
+
+  const text = [
+    `Welcome, ${name}`,
+    `You have been registered as ${role} in your organization on Taskify.`,
+    `Temporary password: ${tempPassword}`,
+    `Set your password: ${resetLink}`,
+    `This link expires in 15 minutes.`,
+  ].join("\n\n");
+
+  return sendMail({ to: email, subject, html, text });
 };
 
-export const sendTaskNotificationEmail = async ({ title, description, assignedManagerEmail, managerName, priority, deadline }) => {
+export const sendTaskNotificationEmail = async ({
+  title,
+  description,
+  assignedManagerEmail,
+  managerName,
+  priority,
+  deadline,
+}) => {
   const subject = `New Task Assigned: ${title}`;
   const html = `
     <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto;">
@@ -93,12 +216,12 @@ export const sendTaskNotificationEmail = async ({ title, description, assignedMa
         <h2 style="margin:0;">🚀 New Task Assigned!</h2>
       </div>
       <div style="padding:20px;">
-        <p>Hi <strong>${managerName}</strong>,</p>
+        <p>Hi <strong>${escapeHtml(managerName)}</strong>,</p>
         <p>A new task has been assigned to you:</p>
-        <p><strong>${title}</strong></p>
-        <p>${description}</p>
-        <p><strong>Priority:</strong> ${priority} • <strong>Deadline:</strong> ${deadline}</p>
-        <p style="text-align:center;margin-top:20px;"><a href="${CLIENT_URL}" style="background:#4CAF50;color:#fff;padding:12px 18px;text-decoration:none;border-radius:6px;">Open Taskify</a></p>
+        <p><strong>${escapeHtml(title)}</strong></p>
+        <p>${escapeHtml(description)}</p>
+        <p><strong>Priority:</strong> ${escapeHtml(String(priority))} • <strong>Deadline:</strong> ${escapeHtml(String(deadline))}</p>
+        <p style="text-align:center;margin-top:20px;"><a href="${escapeHtml(CLIENT_URL || "http://localhost:5173")}" style="background:#4CAF50;color:#fff;padding:12px 18px;text-decoration:none;border-radius:6px;">Open Taskify</a></p>
       </div>
     </div>
   `;
@@ -111,7 +234,7 @@ export const sendOTPByEmail = async (email, otp) => {
     <div style="font-family: Arial, sans-serif;line-height:1.6;">
       <h3>Taskify Password Reset</h3>
       <p>Your one-time password is:</p>
-      <div style="font-size:28px;font-weight:bold;padding:10px;border:1px dashed #ccc;text-align:center;">${otp}</div>
+      <div style="font-size:28px;font-weight:bold;padding:10px;border:1px dashed #ccc;text-align:center;">${escapeHtml(String(otp))}</div>
       <p>This code is valid for 10 minutes.</p>
     </div>
   `;
