@@ -60,7 +60,7 @@ const Footer = () => {
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm font-medium text-slate-500">
-            &copy; {new Date().getFullYear()} Taskify Inc. All rights reserved.
+            &copy; {new Date().getFullYear()} Taskify by Utkarsh Palav. All rights reserved.
           </p>
           <div className="flex gap-8 text-sm font-bold text-slate-500 uppercase tracking-wider">
             <Link to="/privacy" className="hover:text-[#0ae448] transition-colors">Privacy</Link>

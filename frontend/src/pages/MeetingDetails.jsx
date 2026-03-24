@@ -41,6 +41,7 @@ const MeetingDetails = () => {
           { withCredentials: true }
         );
         if (!cancelled) setMeeting(res.data);
+        console.log(res.data);
       } catch (err) {
         console.error("Error fetching meeting:", err);
         if (!cancelled) {

@@ -215,57 +215,62 @@ export const registerOrg = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email })
-    .populate("organizationId", "name country logoUrl")
-    .populate("role", "_id name");
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email })
+      .populate("organizationId", "name country logoUrl")
+      .populate("role", "_id name");
 
-  if (!user) {
-    return res.status(400).json({ message: "Invalid credentials" });
-  }
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return res.status(400).json({ message: "Invalid credentials" });
-  }
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-  const token = jwt.sign(
-    {
-      id: user._id,
-      role: user.role,
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        organizationId: user.organizationId._id,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    user.status = "Active";
+    await user.save();
+
+    await ActivityLog.create({
+      userId: user._id,
       organizationId: user.organizationId._id,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
-  );
-
-  user.status = "Active";
-  await user.save();
-
-  await ActivityLog.create({
-    userId: user._id,
-    organizationId: user.organizationId._id,
-    loginTime: new Date(),
-  });
-
-  const io = req.app.get("io");
-  if (user.organizationId && user.organizationId._id) {
-    const orgRoomId = user.organizationId._id.toString();
-
-    io.to(orgRoomId).emit("statusUpdate", {
-      userId: user._id.toString(),
-      status: "Active",
+      loginTime: new Date(),
     });
+
+    const io = req.app.get("io");
+    if (user.organizationId && user.organizationId._id) {
+      const orgRoomId = user.organizationId._id.toString();
+
+      io.to(orgRoomId).emit("statusUpdate", {
+        userId: user._id.toString(),
+        status: "Active",
+      });
+    }
+
+    const { password: pwd, otp, otpExpires, __v, ...safeUser } = user.toObject();
+
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      })
+      .json({ message: "Login successful", user: safeUser, token: token });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-
-  const { password: pwd, otp, otpExpires, __v, ...safeUser } = user.toObject();
-
-  res
-    .cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // 🔑 Must be true for production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 🔑 Required with `secure: true` for cross-site cookies
-    })
-    .json({ message: "Login successful", user: safeUser, token: token });
 };
 
 export const logout = async (req, res) => {
@@ -295,10 +300,13 @@ export const logout = async (req, res) => {
       );
 
       const io = req.app.get("io");
-      io.to(user.organizationId._id.toString()).emit("statusUpdate", {
-        userId: user._id,
-        status: "Inactive",
-      });
+      // organizationId is not populated here — use it directly as an ObjectId
+      if (user && user.organizationId) {
+        io.to(user.organizationId.toString()).emit("statusUpdate", {
+          userId: user._id,
+          status: "Inactive",
+        });
+      }
     }
 
     res.clearCookie("token", {
@@ -335,7 +343,7 @@ export const forgotPassword = async (req, res) => {
     const resetLink = `${process.env.FRONTEND_URL}/forget-password?token=${resetToken}`;
     await sendPasswordResetEmail({
       email: user.email,
-      name: user.username,
+      name: `${user.firstName} ${user.lastName}`,
       resetLink,
     });
 
@@ -528,7 +536,7 @@ export const resetPassword = async (req, res) => {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-      if (err.name === "TokenExpiredError") {
+      if (error.name === "TokenExpiredError") {
         return res
           .status(400)
           .json({

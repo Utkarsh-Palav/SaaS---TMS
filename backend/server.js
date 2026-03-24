@@ -28,8 +28,6 @@ import activityRoute from './routes/recentActivity.route.js';
 import roleRoute from "./routes/role.route.js";
 import initializeSocket from "./sockets/socketManager.js";
 
-connectDB();
-
 const app = express();
 app.set("trust proxy", false);
 const server = http.createServer(app);
@@ -88,6 +86,10 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-});
+
+(async () => {
+  await connectDB();
+  server.listen(PORT, () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  });
+})();

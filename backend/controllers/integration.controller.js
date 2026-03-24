@@ -4,9 +4,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const getGoogleAuthUrl = (req, res) => {
-  const redirectUri = process.env.NODE_ENV === "production"
-    ? "https://taskify.utkarshdev.me/api/v1/integrations/google/callback"
-    : "http://localhost:5173/api/v1/integrations/google/callback";
+  const redirectUri =
+    process.env.GOOGLE_REDIRECT_URI ||
+    `${process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 8080}`}/api/v1/integrations/google/callback`;
 
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -15,7 +15,7 @@ export const getGoogleAuthUrl = (req, res) => {
   );
 
   const scopes = [
-    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/calendar",
   ];
 
   const authorizationUrl = oauth2Client.generateAuthUrl({
@@ -31,9 +31,9 @@ export const getGoogleAuthUrl = (req, res) => {
 
 export const handleGoogleCallback = async (req, res) => {
   try {
-    const redirectUri = process.env.NODE_ENV === "production"
-      ? "https://taskify.utkarshdev.me/api/v1/integrations/google/callback"
-      : "http://localhost:5173/api/v1/integrations/google/callback";
+    const redirectUri =
+      process.env.GOOGLE_REDIRECT_URI ||
+      `${process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 8080}`}/api/v1/integrations/google/callback`;
 
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,

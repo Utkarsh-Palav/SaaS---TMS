@@ -61,7 +61,7 @@ export const registrationEmail = async (user, plan, transactionDetails = null) =
         </div>
         
         <div style="padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #eee;">
-          &copy; ${new Date().getFullYear()} Taskify Inc. All rights reserved.
+          &copy; ${new Date().getFullYear()} Taskify by Utkarsh Palav. All rights reserved.
         </div>
       </div>
     `;

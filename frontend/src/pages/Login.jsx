@@ -130,7 +130,7 @@ const Login = () => {
 
         {/* Footer */}
         <div className="z-10 text-xs font-bold tracking-widest uppercase text-slate-500">
-          © {new Date().getFullYear()} Taskify Inc. All rights reserved.
+          © {new Date().getFullYear()} Taskify by Utkarsh Palav. All rights reserved.
         </div>
       </div>
 

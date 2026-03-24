@@ -65,18 +65,16 @@ const LegalPage = ({ title, date, children }) => {
 export const Privacy = () => (
   <LegalPage title="Privacy Policy" date="Dec 7, 2025">
     <p>
-      This privacy policy sets out how Utkasrh Suryakant Palav uses and protects
-      any information that you give Utkasrh Suryakant Palav when you visit their
-      website and/or agree to purchase from them.
+      This Privacy Policy describes how Taskify ("we", "our", "us"), operated by Utkarsh Suryakant Palav, collects, uses, and protects any information that you provide when using our website and services.
     </p>
     <p>
-      Utkasrh Suryakant Palav is committed to ensuring that your privacy is
+      Utkarsh Suryakant Palav is committed to ensuring that your privacy is
       protected. Should we ask you to provide certain information by which you
       can be identified when using this website, and then you can be assured
       that it will only be used in accordance with this privacy statement.
     </p>
     <p>
-      Utkasrh Suryakant Palav may change this policy from time to time by
+    Utkarsh Suryakant Palav may change this policy from time to time by
       updating this page. You should check this page from time to time to ensure
       that you adhere to these changes.
     </p>
@@ -181,7 +179,7 @@ export const Terms = () => (
   <LegalPage title="Terms & Conditions" date="Dec 7, 2025">
     <p>
       For the purpose of these Terms and Conditions, The term "we", "us", "our"
-      used anywhere on this page shall mean Utkasrh Suryakant Palav, whose
+      used anywhere on this page shall mean Utkarsh Suryakant Palav, whose
       registered/operational office is Ramchandra Plaza, Kashi Nagar, Bhayandar
       East, Thane - 401105 Thane MAHARASHTRA 401105 . "you", "your", "user",
       "visitor" shall mean any natural or legal person who is visiting our
@@ -234,7 +232,7 @@ export const Terms = () => (
       </li>
       <li>
         You may not create a link to our website from another website or
-        document without Utkasrh Suryakant Palav's prior written consent.
+        document without Utkarsh Suryakant Palav's prior written consent.
       </li>
       <li>
         Any dispute arising out of use of our website and/or purchase with us
@@ -254,7 +252,7 @@ export const Terms = () => (
 export const CancellationRefund = () => (
   <LegalPage title="Cancellation & Refund" date="Dec 7, 2025">
     <p>
-      Utkasrh Suryakant Palav believes in helping its customers as far as
+    Utkarsh Suryakant Palav believes in helping its customers as far as
       possible, and has therefore a liberal cancellation policy. Under this
       policy:
     </p>
@@ -266,7 +264,7 @@ export const CancellationRefund = () => (
         vendors/merchants and they have initiated the process of shipping them.
       </li>
       <li>
-        Utkasrh Suryakant Palav does not accept cancellation requests for
+      Utkarsh Suryakant Palav does not accept cancellation requests for
         perishable items like flowers, eatables etc. However, refund/replacement
         can be made if the customer establishes that the quality of product
         delivered is not good.
@@ -289,7 +287,7 @@ export const CancellationRefund = () => (
         manufacturers, please refer the issue to them.
       </li>
       <li>
-        In case of any Refunds approved by the Utkasrh Suryakant Palav, it'll
+        In case of any Refunds approved by the Utkarsh Suryakant Palav, it'll
         take 9-15 days for the refund to be processed to the end customer.
       </li>
     </ul>
@@ -306,7 +304,7 @@ export const ShippingPolicy = () => {
         courier companies and /or speed post only. Orders are shipped within 0-7
         days or as per the delivery date agreed at the time of order confirmation
         and delivering of the shipment subject to Courier Company / post office
-        norms. Utkasrh Suryakant Palav is not liable for any delay in delivery by
+        norms. Utkarsh Suryakant Palav is not liable for any delay in delivery by
         the courier company / postal authorities and only guarantees to hand over
         the consignment to the courier company or postal authorities within 0-7
         days rom the date of the order and payment or as per the delivery date

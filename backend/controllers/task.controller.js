@@ -430,7 +430,7 @@ export const assignTaskToTeam = async (req, res) => {
       .populate("department", "name _id")
       .populate("team", "name _id");
 
-      await logRecentActivity(req, "ASSIGN_TEAM", "Task", `Assigned task: "${task.title}" to team: "${team.name}"`)
+    await logRecentActivity(req, "ASSIGN_TEAM", "Task", `Assigned task: "${task.title}" to team: "${team.name}"`)
 
     res.status(200).json({
       message: "Task successfully assigned to team",

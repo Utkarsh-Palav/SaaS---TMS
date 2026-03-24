@@ -118,7 +118,7 @@ export const createMeeting = async (req, res) => {
           end: { dateTime: new Date(endTime).toISOString() }
         };
 
-        if (meetingType === "Virtual" && req.body.generateMeetLink) {
+        if ((meetingType === "Virtual" || meetingType === "Hybrid") && req.body.generateMeetLink) {
           event.conferenceData = {
             createRequest: {
               requestId: newMeeting._id.toString(),
@@ -134,7 +134,7 @@ export const createMeeting = async (req, res) => {
         });
 
         newMeeting.googleEventId = createdEvent.data.id;
-        if (meetingType === "Virtual" && createdEvent.data.hangoutLink) {
+        if ((meetingType === "Virtual" || meetingType === "Hybrid") && createdEvent.data.hangoutLink) {
           newMeeting.virtualLink = createdEvent.data.hangoutLink;
         }
 
