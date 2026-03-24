@@ -32,12 +32,14 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import axios from "axios";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useSocket } from "@/context/SocketContext";
 
 const Meeting = () => {
   const { user } = useAuth();
   const isBossOrManager =
     user.role?.name === "Boss" || user.role?.name === "Manager";
   const { toggleNotificationPanel, notifications } = useNotifications();
+  const socket = useSocket();
 
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -136,7 +138,7 @@ const Meeting = () => {
         startTime: "",
         endTime: "",
       });
-      window.location.reload();
+      fetchAllMeetings();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to create meeting");
     } finally {
@@ -160,6 +162,20 @@ const Meeting = () => {
   useEffect(() => {
     fetchAllMeetings();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMeeting = () => {
+      // Re-fetch all meetings whenever a new meeting notification arrives
+      fetchAllMeetings();
+    };
+
+    socket.on("meetingNotification", handleNewMeeting);
+    return () => {
+      socket.off("meetingNotification", handleNewMeeting);
+    };
+  }, [socket]);
 
   // --- Sub-Components for Styles ---
   const ToggleButton = ({ active, onClick, icon: Icon, label }) => (

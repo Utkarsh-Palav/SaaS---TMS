@@ -361,18 +361,20 @@ export const getMeetings = async (req, res) => {
           orderBy: 'startTime',
         });
 
-        googleEvents = eventsRes.data.items.map(event => ({
-           _id: "gcal-" + event.id,
-           title: event.summary || "Busy",
-           startTime: event.start.dateTime || event.start.date,
-           endTime: event.end.dateTime || event.end.date,
-           description: event.description || "Google Calendar Event",
-           meetingType: "Virtual",
-           virtualLink: event.htmlLink || "",
-           status: "Scheduled",
-           host: { firstName: "Google", lastName: "Calendar" },
-           isGoogleEvent: true,
-        }));
+        googleEvents = eventsRes.data.items
+          .filter(event => !localMeetings.some(m => m.googleEventId === event.id))
+          .map(event => ({
+             _id: "gcal-" + event.id,
+             title: event.summary || "Busy",
+             startTime: event.start.dateTime || event.start.date,
+             endTime: event.end.dateTime || event.end.date,
+             description: event.description || "Google Calendar Event",
+             meetingType: "Virtual",
+             virtualLink: event.htmlLink || "",
+             status: "Scheduled",
+             host: { firstName: "Google", lastName: "Calendar" },
+             isGoogleEvent: true,
+          }));
       } catch (err) {
         console.error("Error fetching Google Calendar events:", err);
       }
