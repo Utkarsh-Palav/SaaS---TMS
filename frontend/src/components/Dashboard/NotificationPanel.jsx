@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useNotifications } from "@/context/NotificationContext";
 import { Trash2, Zap, Info, AlertCircle, X, Bell } from "lucide-react";
@@ -12,6 +13,7 @@ const NotificationPanel = () => {
     removeNotification,
     clearNotifications,
   } = useNotifications();
+  const navigate = useNavigate();
 
   const getIcon = (priority) => {
     switch (priority) {
@@ -113,16 +115,33 @@ const NotificationPanel = () => {
                         <div className="text-xs text-muted-foreground bg-muted p-2 rounded-lg mt-2 border border-border">
                           <p>
                             <span className="font-medium text-foreground">
-                              Task:
+                              Title:
                             </span>{" "}
                             {notification.details.title}
                           </p>
-                          <p className="mt-0.5">
-                            <span className="font-medium text-foreground">
-                              Dept:
-                            </span>{" "}
-                            {notification.details.department}
-                          </p>
+                          {notification.details.department && (
+                            <p className="mt-0.5">
+                              <span className="font-medium text-foreground">
+                                Type:
+                              </span>{" "}
+                              {notification.details.department}
+                            </p>
+                          )}
+                          {(notification.details.joinUrl || notification.details.meetingId) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (notification.details.joinUrl) {
+                                  window.open(notification.details.joinUrl, "_blank", "noopener,noreferrer");
+                                  return;
+                                }
+                                navigate(`/meeting/${notification.details.meetingId}`);
+                              }}
+                              className="mt-2 inline-flex items-center rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                            >
+                              Join Meeting
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

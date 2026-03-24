@@ -228,6 +228,61 @@ export const sendTaskNotificationEmail = async ({
   return sendMail({ to: assignedManagerEmail, subject, html });
 };
 
+export const sendMeetingNotificationEmail = async ({
+  recipientEmail,
+  recipientName,
+  subjectPrefix = "Meeting Update",
+  meetingTitle,
+  meetingType,
+  startTime,
+  endTime,
+  description,
+  roomName,
+  virtualLink,
+  meetingDetailsUrl,
+  hostName,
+}) => {
+  const safeRecipient = escapeHtml(recipientName || "there");
+  const safeTitle = escapeHtml(meetingTitle || "Meeting");
+  const safeType = escapeHtml(meetingType || "N/A");
+  const safeDesc = escapeHtml(description || "No agenda provided.");
+  const safeRoom = escapeHtml(roomName || "N/A");
+  const safeHost = escapeHtml(hostName || "Meeting host");
+  const safeStart = escapeHtml(String(startTime || ""));
+  const safeEnd = escapeHtml(String(endTime || ""));
+  const safeVirtualLink = virtualLink ? escapeHtml(virtualLink) : "";
+  const safeDetailsUrl = meetingDetailsUrl ? escapeHtml(meetingDetailsUrl) : "";
+
+  const subject = `${subjectPrefix}: ${meetingTitle}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+      <div style="background: #2563eb; color: #fff; padding: 16px 20px;">
+        <h2 style="margin: 0;">${escapeHtml(subjectPrefix)}</h2>
+      </div>
+      <div style="padding: 20px;">
+        <p>Hi <strong>${safeRecipient}</strong>,</p>
+        <p>You have an update for <strong>${safeTitle}</strong>.</p>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin:14px 0;">
+          <p style="margin: 0 0 6px;"><strong>Host:</strong> ${safeHost}</p>
+          <p style="margin: 0 0 6px;"><strong>Type:</strong> ${safeType}</p>
+          <p style="margin: 0 0 6px;"><strong>Start:</strong> ${safeStart}</p>
+          <p style="margin: 0 0 6px;"><strong>End:</strong> ${safeEnd}</p>
+          ${roomName ? `<p style="margin: 0 0 6px;"><strong>Room:</strong> ${safeRoom}</p>` : ""}
+          ${virtualLink ? `<p style="margin: 0 0 6px;"><strong>Join Link:</strong> <a href="${safeVirtualLink}" target="_blank" rel="noopener noreferrer">${safeVirtualLink}</a></p>` : ""}
+          <p style="margin: 0;"><strong>Agenda:</strong> ${safeDesc}</p>
+        </div>
+        ${
+          safeDetailsUrl
+            ? `<p style="margin-top:18px;"><a href="${safeDetailsUrl}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:10px 14px;border-radius:6px;">Open Meeting Details</a></p>`
+            : ""
+        }
+      </div>
+    </div>
+  `;
+
+  return sendMail({ to: recipientEmail, subject, html });
+};
+
 export const sendOTPByEmail = async (email, otp) => {
   const subject = "Taskify Password Reset OTP";
   const html = `

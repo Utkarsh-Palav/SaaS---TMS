@@ -17,8 +17,8 @@ router.use(verifyToken);
 router.post("/", authorizePermission("create:meeting"), createMeeting);
 router.get("/", authorizePermission("read:meeting"), getMeetings);
 router.get("/:id", authorizePermission("read:meeting"), getMeetingById);
-router.put("/:id", authorizePermission("update:meeting"), updateMeeting);
-router.patch("/:id/cancel", authorizePermission("update:meeting"), cancelMeeting);
-router.delete("/:id", authorizePermission("delete:meeting"), deleteMeeting);
+router.put("/:id", updateMeeting);
+router.patch("/:id/cancel", cancelMeeting);
+router.delete("/:id", deleteMeeting);
 
 export default router;

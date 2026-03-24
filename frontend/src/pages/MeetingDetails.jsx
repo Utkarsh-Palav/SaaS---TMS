@@ -19,8 +19,10 @@ import { useNotifications } from "@/context/NotificationContext";
 import NotificationPanel from "@/components/Dashboard/NotificationPanel";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 const MeetingDetails = () => {
+  const { user } = useAuth();
   const { toggleNotificationPanel, notifications } = useNotifications();
   const { id: meetingId } = useParams();
   const navigate = useNavigate();
@@ -117,6 +119,10 @@ const MeetingDetails = () => {
 
   const room = meeting.roomId;
   const isVirtual = meeting.meetingType === "Virtual";
+  const isHybrid = meeting.meetingType === "Hybrid";
+  const isInPerson = meeting.meetingType === "In-Person";
+  const canJoin = Boolean(meeting.virtualLink);
+  const isHost = meeting?.host?._id === user?._id;
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -207,7 +213,7 @@ const MeetingDetails = () => {
                 </div>
               </div>
 
-              {!isVirtual && room && (
+              {(isInPerson || isHybrid) && room && (
                 <div className="p-4 sm:p-5 flex items-start gap-3">
                   <MapPin className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" size={20} />
                   <div>
@@ -223,22 +229,27 @@ const MeetingDetails = () => {
                 </div>
               )}
 
-              {(isVirtual || meeting.meetingType === "Hybrid") &&
-                meeting.virtualLink && (
+              {(isVirtual || isHybrid) && (
                   <div className="p-4 sm:p-5 flex items-start gap-3">
                     <Link2 className="text-green-600 dark:text-green-400 shrink-0 mt-0.5" size={20} />
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Link
+                        {meeting.virtualLink ? "Virtual Link" : "Virtual Access"}
                       </p>
-                      <a
-                        href={meeting.virtualLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline break-all mt-1 inline-block"
-                      >
-                        {meeting.virtualLink}
-                      </a>
+                      {meeting.virtualLink ? (
+                        <a
+                          href={meeting.virtualLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline break-all mt-1 inline-block"
+                        >
+                          {meeting.virtualLink}
+                        </a>
+                      ) : (
+                        <p className="text-muted-foreground mt-1 text-sm">
+                          No virtual link added yet.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -278,10 +289,21 @@ const MeetingDetails = () => {
             </div>
 
             <div className="flex gap-3">
+              {canJoin && (
+                <Button onClick={() => window.open(meeting.virtualLink, "_blank", "noopener,noreferrer")}>
+                  <Video className="mr-2 h-4 w-4" />
+                  Join Meeting
+                </Button>
+              )}
               <Button variant="outline" onClick={() => navigate("/meetings")}>
                 <Clock className="mr-2 h-4 w-4" />
                 All meetings
               </Button>
+              {isHost && (
+                <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  Host Access Enabled
+                </span>
+              )}
             </div>
           </div>
         </main>

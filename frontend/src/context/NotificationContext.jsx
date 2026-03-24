@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useSocket } from "./SocketContext";
 
 const NotificationContext = createContext();
 
@@ -29,6 +30,7 @@ const saveNotifications = (notifications) => {
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState(loadNotifications);
   const [showNotifications, setShowNotifications] = useState(false);
+  const socket = useSocket();
 
   // 5. Use useEffect to save notifications whenever the state changes
   useEffect(() => {
@@ -42,6 +44,19 @@ export const NotificationProvider = ({ children }) => {
       ...prevNotifications,
     ]);
   };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMeetingNotification = (payload) => {
+      addNotification(payload);
+    };
+
+    socket.on("meetingNotification", handleMeetingNotification);
+    return () => {
+      socket.off("meetingNotification", handleMeetingNotification);
+    };
+  }, [socket]);
 
   // Function to remove a specific notification by its index
   const removeNotification = (id) => {

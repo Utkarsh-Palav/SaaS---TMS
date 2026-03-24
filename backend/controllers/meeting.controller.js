@@ -1,7 +1,80 @@
 import Meeting from "../models/meeting.model.js";
 import Room from "../models/room.model.js";
+import User from "../models/user.model.js";
+import Role from "../models/Role.model.js";
 import { logRecentActivity } from "../utils/logRecentActivity.js";
 import { google } from "googleapis";
+import { sendMeetingNotificationEmail } from "../utils/sendGrid.mail.js";
+import mongoose from "mongoose";
+
+const hasPermission = async (roleId, permissionName) => {
+  const role = await Role.findById(roleId).populate("permissions", "name").lean();
+  if (!role?.permissions?.length) return false;
+  return role.permissions.some((permission) => permission.name === permissionName);
+};
+
+const canManageMeeting = async (reqUser, meeting, permissionName) => {
+  if (!reqUser || !meeting) return false;
+  if (meeting.host?.toString() === reqUser._id.toString()) return true;
+  return hasPermission(reqUser.role, permissionName);
+};
+
+const buildMeetingNotificationPayload = (meeting, subjectPrefix) => {
+  const joinUrl = meeting.virtualLink || `${process.env.FRONTEND_URL}/meeting/${meeting._id}`;
+  return {
+    type: "meeting",
+    title: subjectPrefix,
+    message: `${meeting.title} • ${new Date(meeting.startTime).toLocaleString()}`,
+    time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    details: {
+      priority: "Medium",
+      title: meeting.title,
+      department: meeting.meetingType,
+      meetingId: meeting._id.toString(),
+      joinUrl,
+      meetingType: meeting.meetingType,
+    },
+  };
+};
+
+const notifyParticipants = async (req, meeting, subjectPrefix = "Meeting Scheduled") => {
+  try {
+    const participantIds = (meeting.participants || []).map((id) => id.toString());
+    if (!participantIds.length) return;
+
+    const participants = await User.find(
+      { _id: { $in: participantIds }, organizationId: meeting.organizationId },
+      "firstName lastName email"
+    ).lean();
+    const io = req.app.get("io");
+    const payload = buildMeetingNotificationPayload(meeting, subjectPrefix);
+    const meetingDetailsUrl = `${process.env.FRONTEND_URL}/meeting/${meeting._id}`;
+    const host = await User.findById(meeting.host, "firstName lastName").lean();
+    const hostName = host ? `${host.firstName} ${host.lastName}`.trim() : "Meeting host";
+
+    await Promise.all(
+      participants.map(async (participant) => {
+        io?.to(participant._id.toString()).emit("meetingNotification", payload);
+        await sendMeetingNotificationEmail({
+          recipientEmail: participant.email,
+          recipientName: `${participant.firstName || ""} ${participant.lastName || ""}`.trim(),
+          subjectPrefix,
+          meetingTitle: meeting.title,
+          meetingType: meeting.meetingType,
+          startTime: new Date(meeting.startTime).toLocaleString(),
+          endTime: new Date(meeting.endTime).toLocaleString(),
+          description: meeting.description,
+          roomName: meeting.roomId?.name,
+          virtualLink: meeting.virtualLink,
+          meetingDetailsUrl,
+          hostName,
+        });
+      })
+    );
+  } catch (error) {
+    console.error("Failed sending participant notifications:", error);
+  }
+};
 
 const checkRoomConflict = async (
   roomId,
@@ -148,6 +221,8 @@ export const createMeeting = async (req, res) => {
       meetingId: newMeeting._id,
     });
 
+    await notifyParticipants(req, newMeeting, "Meeting Scheduled");
+
     res.status(201).json({
       message: "Meeting scheduled successfully",
       meeting: newMeeting,
@@ -162,6 +237,48 @@ export const getMeetingById = async (req, res) => {
   try {
     const { id } = req.params;
     const organizationId = req.user.organizationId;
+
+    if (id.startsWith("gcal-")) {
+      if (!req.user.googleTokens) {
+        return res.status(404).json({ message: "Google event not found." });
+      }
+      try {
+        const googleEventId = id.replace("gcal-", "");
+        const oauth2Client = new google.auth.OAuth2(
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_CLIENT_SECRET
+        );
+        oauth2Client.setCredentials(req.user.googleTokens);
+        const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+        const eventRes = await calendar.events.get({
+          calendarId: "primary",
+          eventId: googleEventId,
+        });
+        const event = eventRes.data;
+
+        return res.status(200).json({
+          _id: `gcal-${event.id}`,
+          title: event.summary || "Busy",
+          startTime: event.start?.dateTime || event.start?.date,
+          endTime: event.end?.dateTime || event.end?.date,
+          description: event.description || "Google Calendar Event",
+          meetingType: "Virtual",
+          virtualLink: event.hangoutLink || event.htmlLink || "",
+          status: "Scheduled",
+          host: { firstName: "Google", lastName: "Calendar" },
+          participants: [],
+          roomId: null,
+          isGoogleEvent: true,
+        });
+      } catch (error) {
+        console.error("Error fetching Google event by ID:", error);
+        return res.status(404).json({ message: "Google event not found." });
+      }
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid meeting id." });
+    }
 
     const meeting = await Meeting.findOne({ _id: id, organizationId })
       .populate("host", "firstName middleName lastName email profileImage")
@@ -280,6 +397,12 @@ export const updateMeeting = async (req, res) => {
     if (!existingMeeting) {
       return res.status(404).json({ message: "Meeting not found." });
     }
+    const canUpdate = await canManageMeeting(req.user, existingMeeting, "update:meeting");
+    if (!canUpdate) {
+      return res.status(403).json({
+        message: "Only meeting host or users with meeting update permission can update this meeting.",
+      });
+    }
 
     // If changing Time or Room, Re-Check Conflicts
     if (updates.startTime || updates.endTime || updates.roomId) {
@@ -349,6 +472,7 @@ export const updateMeeting = async (req, res) => {
         newMeeting: updatedMeeting,
         previousMeeting: existingMeeting,
       });
+      await notifyParticipants(req, updatedMeeting, "Meeting Updated");
 
     res
       .status(200)
@@ -364,15 +488,17 @@ export const cancelMeeting = async (req, res) => {
     const { id } = req.params;
     const { organizationId } = req.user;
 
-    const meeting = await Meeting.findOneAndUpdate(
-      { _id: id, organizationId },
-      { status: "Cancelled" },
-      { new: true }
-    );
-
-    if (!meeting) {
+    const existingMeeting = await Meeting.findOne({ _id: id, organizationId });
+    if (!existingMeeting) {
       return res.status(404).json({ message: "Meeting not found" });
     }
+    const canCancel = await canManageMeeting(req.user, existingMeeting, "update:meeting");
+    if (!canCancel) {
+      return res.status(403).json({
+        message: "Only meeting host or users with meeting update permission can cancel this meeting.",
+      });
+    }
+    const meeting = await Meeting.findOneAndUpdate({ _id: id, organizationId }, { status: "Cancelled" }, { new: true });
 
     if (req.user.googleTokens && meeting.googleEventId) {
       try {
@@ -395,6 +521,7 @@ export const cancelMeeting = async (req, res) => {
     await logRecentActivity(req, "CANCEL_MEETING", "Meeting", `Cancelled meeting: ${meeting.title}`, {
       meetingId: meeting._id,
     });
+    await notifyParticipants(req, meeting, "Meeting Cancelled");
 
     res
       .status(200)
@@ -410,11 +537,17 @@ export const deleteMeeting = async (req, res) => {
     const { id } = req.params;
     const organizationId = req.user.organizationId;
 
-    const meeting = await Meeting.findOneAndDelete({ _id: id, organizationId });
-
-    if (!meeting) {
+    const existingMeeting = await Meeting.findOne({ _id: id, organizationId });
+    if (!existingMeeting) {
       return res.status(404).json({ message: "Meeting not found" });
     }
+    const canDelete = await canManageMeeting(req.user, existingMeeting, "delete:meeting");
+    if (!canDelete) {
+      return res.status(403).json({
+        message: "Only meeting host or users with meeting delete permission can delete this meeting.",
+      });
+    }
+    const meeting = await Meeting.findOneAndDelete({ _id: id, organizationId });
 
     if (req.user.googleTokens && meeting.googleEventId) {
       try {
@@ -433,6 +566,7 @@ export const deleteMeeting = async (req, res) => {
         console.error("Failed to delete meeting from Google Calendar:", err);
       }
     }
+    await notifyParticipants(req, existingMeeting, "Meeting Deleted");
 
     res.status(200).json({ message: "Meeting deleted permanently" });
   } catch (error) {
