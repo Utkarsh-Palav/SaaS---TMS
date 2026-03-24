@@ -155,7 +155,7 @@ export const Privacy = () => (
       <li>
         if you have previously agreed to us using your personal information for
         direct marketing purposes, you may change your mind at any time by
-        writing to or emailing us at utkarshpalav17@gmail.com
+        writing to or emailing us at support@utkarshdev.me
       </li>
     </ul>
     <p>
@@ -169,7 +169,7 @@ export const Privacy = () => (
       If you believe that any information we are holding on you is incorrect or
       incomplete, please write to Ramchandra Plaza, Kashi Nagar, Bhayandar East,
       Thane - 401105 Thane MAHARASHTRA 401105 . or contact us at 7208451005 or
-      utkarshpalav17@gmail.com as soon as possible. We will promptly correct any
+      support@utkarshdev.me as soon as possible. We will promptly correct any
       information found to be incorrect.
     </p>
   </LegalPage>
@@ -312,7 +312,7 @@ export const ShippingPolicy = () => {
         to the address provided by the buyer. Delivery of our services will be
         confirmed on your mail ID as specified during registration. For any issues
         in utilizing our services you may contact our helpdesk on 7208451005 or
-        utkarshpalav17@gmail.com
+        support@utkarshdev.me
       </p>
     </LegalPage>
   );
