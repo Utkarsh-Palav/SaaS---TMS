@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Camera, CameraOff, Mic, MicOff, PhoneOff, UserIcon, Loader2 } from 'lucide-react';
 
 const VideoCall = ({ user, isVideo = true, onLeave, socket, isInitiator, recipientId, remoteUser }) => {
@@ -12,6 +12,29 @@ const VideoCall = ({ user, isVideo = true, onLeave, socket, isInitiator, recipie
   const myVideo = useRef();
   const userVideo = useRef();
   const connectionRef = useRef();
+
+  const attachLocalStream = useCallback((videoEl, mediaStream) => {
+    if (!videoEl || !mediaStream) return;
+    if (videoEl.srcObject !== mediaStream) {
+      videoEl.srcObject = mediaStream;
+    }
+    const playPromise = videoEl.play?.();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    // Keep UI state in sync when call mode changes or component gets reused.
+    setIsVideoOff(!isVideo);
+  }, [isVideo]);
+
+  useEffect(() => {
+    // Ensure local preview always receives the media stream after the video ref mounts.
+    if (stream && myVideo.current) {
+      attachLocalStream(myVideo.current, stream);
+    }
+  }, [stream, attachLocalStream]);
 
   useEffect(() => {
     let currentStream;
@@ -64,16 +87,15 @@ const VideoCall = ({ user, isVideo = true, onLeave, socket, isInitiator, recipie
        });
     }
 
-    navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true })
+    navigator.mediaDevices.getUserMedia({
+      video: isVideo ? { facingMode: "user" } : false,
+      audio: true
+    })
       .then((s) => {
         if (!isMounted) return;
         currentStream = s;
         setStream(s);
         mediaReady = true;
-        
-        if (myVideo.current) {
-          myVideo.current.srcObject = s;
-        }
 
         // --- 100% Native WebRTC Signaling ---
         if (isInitiator) {
@@ -168,7 +190,17 @@ const VideoCall = ({ user, isVideo = true, onLeave, socket, isInitiator, recipie
              {/* Local Video Stream */}
              <div className="relative bg-muted/20 rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center flex-1">
                 {stream ? (
-                   <video playsInline muted ref={myVideo} autoPlay className={`w-full h-full object-cover transition-opacity duration-300 ${isVideoOff ? 'opacity-0' : 'opacity-100'}`} />
+                   <video
+                     key={stream?.id || "local-video"}
+                     playsInline
+                     muted
+                     ref={(el) => {
+                       myVideo.current = el;
+                       if (el && stream) attachLocalStream(el, stream);
+                     }}
+                     autoPlay
+                     className={`w-full h-full object-cover transition-opacity duration-300 ${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
+                   />
                 ) : (
                    <div className="absolute inset-0 flex items-center justify-center flex-col animate-pulse">
                       <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />

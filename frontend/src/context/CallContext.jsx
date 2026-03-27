@@ -174,6 +174,7 @@ export const CallProvider = ({ children }) => {
 
       {activeCall && (
         <VideoCall
+          key={activeCall.roomId}
           user={user}
           isVideo={activeCall.type === "video"}
           onLeave={endCall}

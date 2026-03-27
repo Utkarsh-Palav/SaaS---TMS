@@ -2,6 +2,7 @@ import express from "express";
 import {
   getDashboardAnalytics,
   getMonthyCompletionTrend,
+  getOrganizationReport,
   getUpcomingDeadlines,
 } from "../controllers/dashboard.controller.js";
 import verifyToken from "../middlewares/verifyToken.js";
@@ -26,6 +27,12 @@ router.get(
   verifyToken,
   authorizePermission("read:dashboard"),
   getUpcomingDeadlines
+);
+router.get(
+  "/report-data",
+  verifyToken,
+  authorizePermission("read:dashboard"),
+  getOrganizationReport
 );
 
 export default router;

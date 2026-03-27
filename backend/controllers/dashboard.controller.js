@@ -2,6 +2,53 @@ import mongoose from "mongoose";
 import Task from "../models/task.model.js";
 import User from "../models/user.model.js";
 import Role from '../models/Role.model.js'
+import Department from "../models/department.model.js";
+import Meeting from "../models/meeting.model.js";
+
+const PERIOD_DAYS = {
+  week: 7,
+  month: 30,
+  quarter: 90,
+  year: 365,
+};
+
+const formatDateKey = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+const formatMonthKey = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+};
+
+const getRangeForPeriod = (period) => {
+  const days = PERIOD_DAYS[period] || PERIOD_DAYS.month;
+  const endDate = new Date();
+  const startDate = new Date(endDate);
+  startDate.setHours(0, 0, 0, 0);
+  startDate.setDate(startDate.getDate() - (days - 1));
+  return { startDate, endDate, days };
+};
+
+const getPreviousRange = (startDate, days) => {
+  const prevEnd = new Date(startDate);
+  prevEnd.setMilliseconds(prevEnd.getMilliseconds() - 1);
+
+  const prevStart = new Date(prevEnd);
+  prevStart.setHours(0, 0, 0, 0);
+  prevStart.setDate(prevStart.getDate() - (days - 1));
+
+  return { prevStart, prevEnd };
+};
+
+const getPercentChange = (current, previous) => {
+  if (!previous) return current > 0 ? 100 : 0;
+  return Number((((current - previous) / previous) * 100).toFixed(1));
+};
 
 const getInitialMonthlyCountsArray = (year) => {
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -167,6 +214,386 @@ export const getDashboardAnalytics = async (req, res) => {
     console.error("Error in getDashboardAnalytics:", error);
     res.status(500).json({
       message: "Server error while fetching analytics.",
+      error: error.message,
+    });
+  }
+};
+
+export const getOrganizationReport = async (req, res) => {
+  try {
+    const { organizationId } = req.user;
+    if (!organizationId) {
+      return res.status(401).json({
+        message: "Authentication error: Organization ID not found.",
+      });
+    }
+
+    const period = (req.query.period || "month").toLowerCase();
+    const validPeriod = Object.keys(PERIOD_DAYS).includes(period) ? period : "month";
+
+    const orgId = new mongoose.Types.ObjectId(organizationId);
+    const now = new Date();
+    const { startDate, endDate, days } = getRangeForPeriod(validPeriod);
+    const { prevStart, prevEnd } = getPreviousRange(startDate, days);
+
+    const trendUnit = validPeriod === "week" || validPeriod === "month" ? "day" : "month";
+    const trendFormat = trendUnit === "day" ? "%Y-%m-%d" : "%Y-%m";
+
+    const [
+      taskStatusAgg,
+      totalTasksInPeriod,
+      completedTasksInPeriod,
+      completedTasksPrevPeriod,
+      activeEmployees,
+      totalDepartments,
+      meetingsHeldInPeriod,
+      meetingsHeldPrevPeriod,
+      taskTrendAgg,
+      deptPerformanceAgg,
+      deptDistributionAgg,
+      topPerformersAgg,
+    ] = await Promise.all([
+      Task.aggregate([
+        {
+          $match: {
+            organizationId: orgId,
+            createdAt: { $gte: startDate, $lte: endDate },
+          },
+        },
+        {
+          $addFields: {
+            computedStatus: {
+              $cond: [
+                {
+                  $and: [
+                    { $ne: ["$status", "Completed"] },
+                    { $lt: ["$deadline", now] },
+                  ],
+                },
+                "Overdue",
+                "$status",
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$computedStatus",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      Task.countDocuments({
+        organizationId: orgId,
+        createdAt: { $gte: startDate, $lte: endDate },
+      }),
+      Task.countDocuments({
+        organizationId: orgId,
+        status: "Completed",
+        updatedAt: { $gte: startDate, $lte: endDate },
+      }),
+      Task.countDocuments({
+        organizationId: orgId,
+        status: "Completed",
+        updatedAt: { $gte: prevStart, $lte: prevEnd },
+      }),
+      User.countDocuments({ organizationId: orgId, status: "Active" }),
+      Department.countDocuments({ organizationId: orgId }),
+      Meeting.countDocuments({
+        organizationId: orgId,
+        status: "Completed",
+        date: { $gte: startDate, $lte: endDate },
+      }),
+      Meeting.countDocuments({
+        organizationId: orgId,
+        status: "Completed",
+        date: { $gte: prevStart, $lte: prevEnd },
+      }),
+      Task.aggregate([
+        {
+          $match: {
+            organizationId: orgId,
+            createdAt: { $gte: startDate, $lte: endDate },
+          },
+        },
+        {
+          $addFields: {
+            computedStatus: {
+              $cond: [
+                {
+                  $and: [
+                    { $ne: ["$status", "Completed"] },
+                    { $lt: ["$deadline", now] },
+                  ],
+                },
+                "Overdue",
+                "$status",
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            bucket: { $dateToString: { format: trendFormat, date: "$createdAt" } },
+            computedStatus: 1,
+          },
+        },
+        {
+          $group: {
+            _id: { bucket: "$bucket", status: "$computedStatus" },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $group: {
+            _id: "$_id.bucket",
+            statuses: {
+              $push: {
+                status: "$_id.status",
+                count: "$count",
+              },
+            },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+      Task.aggregate([
+        {
+          $match: {
+            organizationId: orgId,
+            createdAt: { $gte: startDate, $lte: endDate },
+            department: { $ne: null },
+          },
+        },
+        {
+          $group: {
+            _id: "$department",
+            totalTasks: { $sum: 1 },
+            completedTasks: {
+              $sum: {
+                $cond: [{ $eq: ["$status", "Completed"] }, 1, 0],
+              },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "departments",
+            localField: "_id",
+            foreignField: "_id",
+            as: "department",
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: {
+              $ifNull: [{ $arrayElemAt: ["$department.name", 0] }, "Unassigned"],
+            },
+            totalTasks: 1,
+            completedTasks: 1,
+            performance: {
+              $cond: [
+                { $gt: ["$totalTasks", 0] },
+                {
+                  $round: [
+                    {
+                      $multiply: [
+                        { $divide: ["$completedTasks", "$totalTasks"] },
+                        100,
+                      ],
+                    },
+                    1,
+                  ],
+                },
+                0,
+              ],
+            },
+          },
+        },
+        { $sort: { performance: -1, totalTasks: -1 } },
+      ]),
+      User.aggregate([
+        {
+          $match: {
+            organizationId: orgId,
+            departmentId: { $ne: null },
+          },
+        },
+        {
+          $group: {
+            _id: "$departmentId",
+            value: { $sum: 1 },
+          },
+        },
+        {
+          $lookup: {
+            from: "departments",
+            localField: "_id",
+            foreignField: "_id",
+            as: "department",
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: {
+              $ifNull: [{ $arrayElemAt: ["$department.name", 0] }, "Unassigned"],
+            },
+            value: 1,
+          },
+        },
+        { $sort: { value: -1 } },
+      ]),
+      Task.aggregate([
+        {
+          $match: {
+            organizationId: orgId,
+            status: "Completed",
+            updatedAt: { $gte: startDate, $lte: endDate },
+          },
+        },
+        { $unwind: "$assignedEmployees" },
+        {
+          $group: {
+            _id: "$assignedEmployees",
+            tasks: { $sum: 1 },
+          },
+        },
+        { $sort: { tasks: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $lookup: {
+            from: "departments",
+            localField: "user.departmentId",
+            foreignField: "_id",
+            as: "department",
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: "$user._id",
+            name: {
+              $trim: {
+                input: {
+                  $concat: [
+                    { $ifNull: ["$user.firstName", ""] },
+                    " ",
+                    { $ifNull: ["$user.lastName", ""] },
+                  ],
+                },
+              },
+            },
+            department: {
+              $ifNull: [{ $arrayElemAt: ["$department.name", 0] }, "Unassigned"],
+            },
+            tasks: 1,
+            avatar: "$user.profileImage",
+          },
+        },
+      ]),
+    ]);
+
+    const statusMap = {
+      Completed: 0,
+      Pending: 0,
+      "In Progress": 0,
+      Overdue: 0,
+    };
+
+    taskStatusAgg.forEach((item) => {
+      if (statusMap[item._id] !== undefined) {
+        statusMap[item._id] = item.count;
+      }
+    });
+
+    const trendMap = new Map();
+    taskTrendAgg.forEach((row) => {
+      const bucket = row._id;
+      const base = { completed: 0, pending: 0, overdue: 0 };
+      row.statuses.forEach((entry) => {
+        if (entry.status === "Completed") base.completed = entry.count;
+        if (entry.status === "Pending" || entry.status === "In Progress") {
+          base.pending += entry.count;
+        }
+        if (entry.status === "Overdue") base.overdue = entry.count;
+      });
+      trendMap.set(bucket, base);
+    });
+
+    const trend = [];
+    if (trendUnit === "day") {
+      const current = new Date(startDate);
+      while (current <= endDate) {
+        const bucket = formatDateKey(current);
+        const point = trendMap.get(bucket) || { completed: 0, pending: 0, overdue: 0 };
+        trend.push({
+          label: current.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          completed: point.completed,
+          pending: point.pending,
+          overdue: point.overdue,
+        });
+        current.setDate(current.getDate() + 1);
+      }
+    } else {
+      const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+      while (current <= endMonth) {
+        const bucket = formatMonthKey(current);
+        const point = trendMap.get(bucket) || { completed: 0, pending: 0, overdue: 0 };
+        trend.push({
+          label: current.toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+          completed: point.completed,
+          pending: point.pending,
+          overdue: point.overdue,
+        });
+        current.setMonth(current.getMonth() + 1);
+      }
+    }
+
+    const palette = ["#4F46E5", "#10B981", "#F59E0B", "#EC4899", "#0EA5E9", "#8B5CF6", "#22C55E"];
+    const departmentDistribution = deptDistributionAgg.map((item, index) => ({
+      ...item,
+      color: palette[index % palette.length],
+    }));
+
+    res.status(200).json({
+      period: validPeriod,
+      range: { startDate, endDate },
+      summary: {
+        totalTasks: totalTasksInPeriod,
+        completedTasks: completedTasksInPeriod,
+        pendingTasks: statusMap.Pending,
+        inProgressTasks: statusMap["In Progress"],
+        overdueTasks: statusMap.Overdue,
+        activeEmployees,
+        meetingsHeld: meetingsHeldInPeriod,
+        departments: totalDepartments,
+      },
+      changes: {
+        completedTasksPct: getPercentChange(completedTasksInPeriod, completedTasksPrevPeriod),
+        meetingsHeldPct: getPercentChange(meetingsHeldInPeriod, meetingsHeldPrevPeriod),
+      },
+      taskCompletionTrend: trend,
+      departmentPerformance: deptPerformanceAgg,
+      departmentDistribution,
+      topPerformers: topPerformersAgg,
+      generatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error("Error in getOrganizationReport:", error);
+    res.status(500).json({
+      message: "Server error while fetching report data.",
       error: error.message,
     });
   }
