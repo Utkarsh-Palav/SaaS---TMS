@@ -12,6 +12,10 @@ import {
   Link2,
   Loader2,
   Building2,
+  Plus,
+  Trash2,
+  XCircle,
+  Edit,
 } from "lucide-react";
 import Sidebar from "@/components/Layout/Sidebar";
 import axios from "axios";
@@ -20,6 +24,14 @@ import NotificationPanel from "@/components/Dashboard/NotificationPanel";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const MeetingDetails = () => {
   const { user } = useAuth();
@@ -31,6 +43,120 @@ const MeetingDetails = () => {
   const [meeting, setMeeting] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Management State
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [employees, setEmployees] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    participants: [],
+    meetingType: "Virtual",
+    roomId: "",
+    virtualLink: "",
+    generateMeetLink: false,
+    startTime: "",
+    endTime: "",
+  });
+
+  const fetchFormDependencies = async () => {
+    try {
+      const [empRes, roomRes] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL}/api/employee/all-employee`, {
+          withCredentials: true,
+        }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/room`, {
+          withCredentials: true,
+        }),
+      ]);
+      setEmployees(empRes.data.employees || empRes.data || []);
+      setRooms(roomRes.data || []);
+    } catch (error) {
+      console.error("Failed to load dependencies", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isEditOpen && employees.length === 0) fetchFormDependencies();
+  }, [isEditOpen]);
+
+  const handleEditClick = () => {
+    setFormData({
+      title: meeting.title,
+      description: meeting.description || "",
+      participants: (meeting.participants || []).map((p) => p._id),
+      meetingType: meeting.meetingType,
+      roomId: meeting.roomId?._id || "",
+      virtualLink: meeting.virtualLink || "",
+      generateMeetLink: false,
+      startTime: meeting.startTime ? new Date(meeting.startTime).toISOString().slice(0, 16) : "",
+      endTime: meeting.endTime ? new Date(meeting.endTime).toISOString().slice(0, 16) : "",
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleParticipantToggle = (userId) => {
+    setFormData((prev) => {
+      const isSelected = prev.participants.includes(userId);
+      return {
+        ...prev,
+        participants: isSelected
+          ? prev.participants.filter((id) => id !== userId)
+          : [...prev.participants, userId],
+      };
+    });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (new Date(formData.startTime) >= new Date(formData.endTime)) {
+      return toast.error("End time must be after start time");
+    }
+    setUpdating(true);
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/meeting/${meetingId}`, formData, { withCredentials: true });
+      toast.success("Meeting updated successfully");
+      setIsEditOpen(false);
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/meeting/${meetingId}`, { withCredentials: true });
+      setMeeting(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update meeting");
+    } finally {
+      setLoading(false);
+      setUpdating(false);
+    }
+  };
+
+  const handleCancelClick = async () => {
+    if (!window.confirm("Are you sure you want to cancel this meeting?")) return;
+    try {
+      await axios.patch(`${import.meta.env.VITE_API_URL}/api/meeting/${meetingId}/cancel`, {}, { withCredentials: true });
+      toast.success("Meeting cancelled");
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/meeting/${meetingId}`, { withCredentials: true });
+      setMeeting(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to cancel meeting");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteClick = async () => {
+    if (!window.confirm("Are you sure you want to permanently delete this meeting?")) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/meeting/${meetingId}`, { withCredentials: true });
+      toast.success("Meeting deleted");
+      navigate("/meetings");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete meeting");
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +249,7 @@ const MeetingDetails = () => {
   const isInPerson = meeting.meetingType === "In-Person";
   const canJoin = Boolean(meeting.virtualLink);
   const isHost = meeting?.host?._id === user?._id;
+  const canManage = isHost || user?.role?.name === "Boss";
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -299,15 +426,270 @@ const MeetingDetails = () => {
                 <Clock className="mr-2 h-4 w-4" />
                 All meetings
               </Button>
-              {isHost && (
-                <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                  Host Access Enabled
-                </span>
+              {canManage && (
+                <>
+                  <Button variant="outline" onClick={handleEditClick} className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/50">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
+                  {meeting.status !== "Cancelled" && (
+                    <Button variant="outline" onClick={handleCancelClick} className="border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/50">
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Cancel
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={handleDeleteClick} className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/50">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </>
               )}
             </div>
           </div>
         </main>
       </div>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto p-0 gap-0 bg-card rounded-2xl border-border">
+          <DialogHeader className="p-6 border-b border-border bg-muted/50">
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Edit Meeting
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Make changes to your scheduled meeting.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleUpdate} className="p-6 space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase">
+                Title
+              </label>
+              <input
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
+                placeholder="e.g. Q3 Roadmap Review"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-muted-foreground uppercase">
+                  Start Time
+                </label>
+                <input
+                  type="datetime-local"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-muted-foreground uppercase">
+                  End Time
+                </label>
+                <input
+                  type="datetime-local"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase">
+                Meeting Type
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {["Virtual", "In-Person", "Hybrid"].map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        meetingType: type,
+                      })
+                    }
+                    className={`py-2.5 px-3 text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition-all ${
+                      formData.meetingType === type
+                        ? "border-primary bg-primary/10 text-primary ring-1 ring-primary"
+                        : "border-border text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {type === "Virtual" && <Video size={14} />}
+                    {type === "In-Person" && <Users size={14} />}
+                    {type === "Hybrid" && <MapPin size={14} />}
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(formData.meetingType === "In-Person" ||
+              formData.meetingType === "Hybrid") && (
+              <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase">
+                  Select Room
+                </label>
+                <select
+                  name="roomId"
+                  value={formData.roomId}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
+                  required
+                >
+                  <option value="">-- Choose a Room --</option>
+                  {rooms.map((r) => (
+                    <option key={r._id} value={r._id}>
+                      {r.name} (Cap: {r.capacity})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {(formData.meetingType === "Virtual" ||
+              formData.meetingType === "Hybrid") && (
+              <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase">
+                  Virtual Link
+                </label>
+
+                {!!user?.googleTokens && (
+                  <div className="flex bg-muted rounded-lg p-1.5 gap-1 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, generateMeetLink: true, virtualLink: "" })}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${
+                        formData.generateMeetLink
+                          ? "bg-background text-primary shadow-sm ring-1 ring-border"
+                          : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                      }`}
+                    >
+                      <Video size={14} /> Auto-Generate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, generateMeetLink: false })}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${
+                        !formData.generateMeetLink
+                          ? "bg-background text-primary shadow-sm ring-1 ring-border"
+                          : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                      }`}
+                    >
+                      <Plus size={14} /> Custom Link
+                    </button>
+                  </div>
+                )}
+
+                {!formData.generateMeetLink && (
+                  <input
+                    name="virtualLink"
+                    value={formData.virtualLink}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground"
+                    placeholder="https://..."
+                  />
+                )}
+
+                {formData.generateMeetLink && (
+                    <div className="w-full px-3 py-2.5 bg-accent/50 border border-border border-dashed rounded-lg text-sm text-muted-foreground flex items-center justify-center gap-2">
+                      <Video size={16} className="text-primary"/> Google Meet Link will be generated automatically.
+                    </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase">
+                Participants ({formData.participants.length})
+              </label>
+              <div className="border border-border rounded-lg max-h-32 overflow-y-auto bg-muted p-1">
+                {employees.length === 0 ? (
+                  <div className="text-xs text-muted-foreground p-2">
+                    Loading...
+                  </div>
+                ) : (
+                  employees.map((emp) => (
+                    <div
+                      key={emp._id}
+                      onClick={() =>
+                        handleParticipantToggle(emp._id)
+                      }
+                        className="flex items-center gap-2 p-2 hover:bg-accent hover:shadow-sm rounded-md cursor-pointer transition-all"
+                    >
+                      <div
+                        className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                          formData.participants.includes(emp._id)
+                            ? "bg-primary border-primary"
+                            : "bg-card border-border"
+                        }`}
+                      >
+                        {formData.participants.includes(
+                          emp._id
+                        ) && (
+                          <Plus size={10} className="text-white" />
+                        )}
+                      </div>
+                      <span className="text-sm text-foreground font-medium">
+                        {emp.firstName} {emp.lastName}
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        {emp.jobTitle}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase">
+                Agenda
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2.5 bg-muted border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none text-foreground"
+                placeholder="Brief description..."
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsEditOpen(false)}
+                className="text-muted-foreground"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={updating}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[120px]"
+              >
+                {updating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <NotificationPanel />
     </div>

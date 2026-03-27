@@ -1,4 +1,3 @@
-import Cookies from "js-cookie";
 import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 
@@ -17,7 +16,6 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     const currentToken = localStorage.getItem("token");
     // Only connect if we have a token AND haven't connected yet.
-    Cookies.set("token", currentToken, { secure: true, sameSite: "Strict" });
     if (currentToken && !socketRef.current) {
       const newSocket = io(import.meta.env.VITE_API_URL, {
         auth: {
