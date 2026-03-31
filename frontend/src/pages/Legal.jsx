@@ -35,7 +35,7 @@ const LegalPage = ({ title, date, children }) => {
             <div className="legal-content bg-[#1c1c1c] rounded-[2.5rem] p-8 md:p-16 shadow-2xl border-2 border-white/5 relative overflow-hidden">
               
               {/* Top abstract border line */}
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#3b82f6] via-[#0ae448] to-[#ff4a9e]"></div>
+              <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-[#3b82f6] via-[#0ae448] to-[#ff4a9e]"></div>
 
               <div className="border-b border-white/10 pb-10 mb-10">
                 <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter uppercase">

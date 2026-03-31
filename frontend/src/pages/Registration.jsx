@@ -232,7 +232,7 @@ const Registration = () => {
         {/* Ambient Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#3b82f6]/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-        <div className="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none mix-blend-screen">
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none mix-blend-screen">
           <div style={{ width: "100%", height: "100%", position: "relative" }}>
             <FloatingLines
               enabledWaves={["top", "middle", "bottom"]}

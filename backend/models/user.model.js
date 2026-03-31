@@ -75,6 +75,14 @@ const UserSchema = new mongoose.Schema(
       type: Object,
       default: null,
     },
+    slackOAuth: {
+      type: Object,
+      default: null,
+    },
+    githubOAuth: {
+      type: Object,
+      default: null,
+    },
     otp: {
       type: String,
       default: null,

@@ -5,7 +5,7 @@ import { Layers } from "lucide-react";
 
 const PageLoader = () => {
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0e100f] text-white">
+    <div className="fixed inset-0 z-9999 flex flex-col items-center justify-center bg-[#0e100f] text-white">
       
       {/* Ambient Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#3b82f6]/20 rounded-full blur-[100px] pointer-events-none"></div>

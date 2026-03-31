@@ -141,7 +141,7 @@ const Changelog = () => {
                 <div className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border-4 border-[#0e100f] ${item.dotColor} shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_20px_rgba(0,0,0,0.5)] z-10 transition-transform duration-300 group-hover:scale-125`}></div>
                 
                 {/* Content Card */}
-                <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-8 bg-[#1c1c1c] rounded-[2rem] border-2 border-white/5 shadow-xl transition-all duration-300 ${item.hoverBorder}`}>
+                <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-8 bg-[#1c1c1c] rounded-4xl border-2 border-white/5 shadow-xl transition-all duration-300 ${item.hoverBorder}`}>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                      <span className={`text-2xl font-black uppercase tracking-wide ${item.textColor}`}>{item.version}</span>
                      <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">{item.date}</span>

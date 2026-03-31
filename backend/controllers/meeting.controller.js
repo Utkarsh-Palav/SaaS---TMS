@@ -7,6 +7,38 @@ import { google } from "googleapis";
 import { sendMeetingNotificationEmail } from "../utils/sendGrid.mail.js";
 import mongoose from "mongoose";
 
+const sendSlackMeetingEvent = async (req, action, meeting) => {
+  try {
+    const webhookUrl = req.user?.slackOAuth?.incomingWebhook?.url;
+    if (!webhookUrl) return;
+
+    const actor =
+      `${req.user?.firstName || ""} ${req.user?.lastName || ""}`.trim() ||
+      "A user";
+
+    const payload = {
+      text: `Taskify Meeting ${action}`,
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*Taskify Meeting ${action}*\n*Title:* ${meeting.title}\n*Type:* ${meeting.meetingType}\n*Start:* ${new Date(meeting.startTime).toLocaleString()}\n*By:* ${actor}`,
+          },
+        },
+      ],
+    };
+
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    console.error("Slack meeting notification failed:", error?.message || error);
+  }
+};
+
 const hasPermission = async (roleId, permissionName) => {
   const role = await Role.findById(roleId).populate("permissions", "name").lean();
   if (!role?.permissions?.length) return false;
@@ -222,6 +254,7 @@ export const createMeeting = async (req, res) => {
     });
 
     await notifyParticipants(req, newMeeting, "Meeting Scheduled");
+    await sendSlackMeetingEvent(req, "Created", newMeeting);
 
     res.status(201).json({
       message: "Meeting scheduled successfully",
@@ -475,6 +508,7 @@ export const updateMeeting = async (req, res) => {
         previousMeeting: existingMeeting,
       });
       await notifyParticipants(req, updatedMeeting, "Meeting Updated");
+      await sendSlackMeetingEvent(req, "Updated", updatedMeeting);
 
     res
       .status(200)
@@ -524,6 +558,7 @@ export const cancelMeeting = async (req, res) => {
       meetingId: meeting._id,
     });
     await notifyParticipants(req, meeting, "Meeting Cancelled");
+    await sendSlackMeetingEvent(req, "Cancelled", meeting);
 
     res
       .status(200)
@@ -569,6 +604,7 @@ export const deleteMeeting = async (req, res) => {
       }
     }
     await notifyParticipants(req, existingMeeting, "Meeting Deleted");
+    await sendSlackMeetingEvent(req, "Deleted", existingMeeting);
 
     res.status(200).json({ message: "Meeting deleted permanently" });
   } catch (error) {

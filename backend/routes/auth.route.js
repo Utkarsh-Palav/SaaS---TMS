@@ -42,10 +42,12 @@ router.post("/verify-payment", paymentVerification);
 
 router.get("/me", verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate(
-      "organizationId role",
-      "name country logoUrl"
-    );
+    const user = await User.findById(req.user.id)
+      .populate(
+        "organizationId",
+        "name country logoUrl plan planType subscriptionExpiresAt websiteUrl city state address pincode gstin createdAt"
+      )
+      .populate("role", "_id name");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -55,10 +57,18 @@ router.get("/me", verifyToken, async (req, res) => {
       otp,
       otpExpires,
       __v,
+      slackOAuth,
+      githubOAuth,
       ...safeUser
     } = user.toObject();
 
-    res.status(200).json({ user: safeUser });
+    res.status(200).json({
+      user: {
+        ...safeUser,
+        hasSlackOAuth: Boolean(slackOAuth?.accessToken),
+        hasGithubOAuth: Boolean(githubOAuth?.accessToken),
+      },
+    });
   } catch (error) {
     console.error("Error fetching user data for /me:", error);
     res.status(500).json({ message: "Server error" });

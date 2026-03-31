@@ -92,7 +92,7 @@ const Login = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#3b82f6]/10 rounded-full blur-[100px] pointer-events-none"></div>
 
         {/* Prism Animation */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-60">
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
           <div style={{ width: "100%", height: "100%", position: "relative" }}>
             <Prism
               animationType="rotate"
